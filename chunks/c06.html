@@ -1,0 +1,45 @@
+
+  <section class="sec" id="people" aria-label="Your people">
+    <div class="sec-head">
+      <div>
+        <span class="kicker">Your people</span>
+        <h2>One card per person. One tap to log a call.</h2>
+        <p>Each card shows their time right now, whether they are awake, and the best window to ring them today — in your time and theirs.</p>
+      </div>
+      <button class="btn ghost sm" type="button" id="addPersonBtn">+ Add a person</button>
+    </div>
+    <div class="people" id="peopleGrid"></div>
+    <p class="small muted" style="margin-top:10px">Sample people are marked and can be removed in Settings. Add your own people with their city — their clock appears on the wall too.</p>
+  </section>
+
+  <section class="sec" id="planner" aria-label="Plan a call">
+    <div class="sec-head">
+      <div>
+        <span class="kicker">Meeting planner</span>
+        <h2>Pick a time here. See it everywhere.</h2>
+        <p>Choose a date and a time in Bengaluru. The table shows what time that is for everyone on your wall — so nobody has to convert.</p>
+      </div>
+      <button class="btn ghost sm" type="button" id="copyPlanBtn">Copy the plan</button>
+    </div>
+    <div class="planner-grid">
+      <div class="card">
+        <div class="field" style="margin-bottom:12px">
+          <label for="planDate">Date</label>
+          <input type="date" id="planDate">
+        </div>
+        <div class="field" style="margin-bottom:12px">
+          <label for="planTime">Time in Bengaluru (IST)</label>
+          <input type="time" id="planTime" value="19:00">
+        </div>
+        <div class="field" style="margin-bottom:16px">
+          <label for="planNote">What is the call about? (optional)</label>
+          <input type="text" id="planNote" placeholder="e.g. Sunday family call" maxlength="60">
+        </div>
+        <p class="small" id="planSummary" style="font-weight:600">Pick a time to see it in every time zone.</p>
+        <p class="small muted">Tip: 7:00 PM in Bengaluru is 2:30 PM in Italy in winter and 3:30 PM in summer — Europe moves its clocks, India does not.</p>
+      </div>
+      <div class="card" style="overflow-x:auto">
+        <table class="plan-table" id="planTable" aria-label="Planned call time in every place"></table>
+      </div>
+    </div>
+  </section>
