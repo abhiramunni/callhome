@@ -1,0 +1,120 @@
+
+/* ---------- people ---------- */
+function bestWindowToday(p){
+  var home=homePerson();
+  var wins=overlapWindows(HOME_TZ,home.wake,home.sleep,p.tz,p.wake,p.sleep,new Date());
+  if(!wins.length) return null;
+  var w=wins[0];
+  var theirS=((w.start+tzOffsetMin(p.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+  var theirE=((w.end+tzOffsetMin(p.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+  return {home:fromMin(w.start)+' – '+fromMin(w.end), theirs:fromMin(theirS)+' – '+fromMin(theirE)};
+}
+function renderPeople(){
+  var grid=q('#peopleGrid'); grid.innerHTML='';
+  var now=new Date();
+  state.people.forEach(function(p){
+    var card=el('div','card person');
+    var head=el('div','head');
+    head.appendChild(el('div','avatar '+AVATAR_COLORS[p.color||0],esc(p.name.charAt(0).toUpperCase())));
+    var nm=el('div'); nm.appendChild(el('h3',null,esc(p.name)+(p.sample?' <span class="small muted">· sample</span>':'')));
+    nm.appendChild(el('div','place',esc(p.place)));
+    head.appendChild(nm);
+    card.appendChild(head);
+    var pp=partsInZone(p.tz,now);
+    var h12=pp.h%12; if(h12===0) h12=12;
+    var awake=isAwakeAt(p.tz,p.wake,p.sleep,now);
+    var tzline=el('div','tzline','It is <b>'+h12+':'+String(pp.mi).padStart(2,'0')+' '+(pp.h>=12?'PM':'AM')+'</b> there · '+dayLabel(p.tz,now)+' · '+fmtOffset(tzOffsetMin(p.tz,now)));
+    card.appendChild(tzline);
+    var pill=el('span','pill '+(awake?'awake':'asleep'));
+    pill.innerHTML='<span class="dot" style="background:'+(awake?'#3f7a4e':'#8a7360')+'"></span>'+(awake?'Awake now — good time to call':'Asleep now');
+    card.appendChild(pill);
+    var bw=bestWindowToday(p);
+    var best=el('div','best',bw?('Best window today: <b>'+bw.home+' your time</b> · '+bw.theirs+' their time'):'No shared awake hours with home today.');
+    card.appendChild(best);
+    var we=el('div','wake-edit');
+    we.innerHTML='Awake <input type="time" data-wake="'+p.id+'" value="'+fromMin24(p.wake)+'" aria-label="Awake from"> to <input type="time" data-sleep="'+p.id+'" value="'+fromMin24(p.sleep)+'" aria-label="Asleep from">';
+    card.appendChild(we);
+    var row=el('div','row');
+    var callBtn=el('button','btn sm terra','Mark called');
+    callBtn.type='button';
+    callBtn.addEventListener('click',function(){ markCalled(p.id); });
+    row.appendChild(callBtn);
+    var del=el('button','btn sm ghost','Remove');
+    del.type='button';
+    del.addEventListener('click',function(){ state.people=state.people.filter(function(x){return x.id!==p.id;}); save(); renderAll(); toast(p.name+' removed'); });
+    row.appendChild(del);
+    var st=el('span','streak-chip','Last called: '+(p.lastCalled?prettyDate(p.lastCalled):'never'));
+    row.appendChild(st);
+    card.appendChild(row);
+    grid.appendChild(card);
+  });
+  qa('[data-wake]').forEach(function(inp){
+    inp.addEventListener('change',function(){
+      var p=personById(inp.dataset.wake); if(!p) return;
+      p.wake=toMin(inp.value||'07:00'); save(); renderFinder(); updateNowCard();
+    });
+  });
+  qa('[data-sleep]').forEach(function(inp){
+    inp.addEventListener('change',function(){
+      var p=personById(inp.dataset.sleep); if(!p) return;
+      p.sleep=toMin(inp.value||'22:30'); save(); renderFinder(); updateNowCard();
+    });
+  });
+}
+function prettyDate(iso){
+  var a=iso.split('-'); var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return parseInt(a[2],10)+' '+months[parseInt(a[1],10)-1]+' '+a[0];
+}
+function markCalled(id){
+  var p=personById(id); if(!p) return;
+  var today=localDateStr(new Date());
+  if(p.calls.indexOf(today)===-1) p.calls.push(today);
+  p.lastCalled=today;
+  save(); renderAll();
+  toast('Logged a call with '+p.name+' — nice one.');
+}
+function allCallDates(){
+  var set={};
+  state.people.forEach(function(p){ (p.calls||[]).forEach(function(d){ set[d]=true; }); });
+  return Object.keys(set).sort();
+}
+function callStreak(){
+  var dates=allCallDates(); if(!dates.length) return 0;
+  var set={}; dates.forEach(function(d){ set[d]=true; });
+  var streak=0, d=new Date();
+  if(!set[localDateStr(d)]) d.setDate(d.getDate()-1);
+  while(set[localDateStr(d)]){ streak++; d.setDate(d.getDate()-1); }
+  return streak;
+}
+/* ---------- call log ---------- */
+function renderLog(){
+  var strip=q('#weekStrip'); strip.innerHTML='';
+  var dates=allCallDates(); var set={}; dates.forEach(function(d){ set[d]=true; });
+  var today=new Date();
+  var monday=new Date(today); var dow=(today.getDay()+6)%7; monday.setDate(today.getDate()-dow);
+  var names=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  var weekCalls=0;
+  for(var i=0;i<7;i++){
+    var d=new Date(monday); d.setDate(monday.getDate()+i);
+    var iso=localDateStr(d);
+    var hit=!!set[iso]; if(hit) weekCalls++;
+    var cell=el('div','week-day',names[i]);
+    var b=el('b',hit?'hit':''); if(iso===localDateStr(today)) b.classList.add('today');
+    b.textContent=d.getDate();
+    cell.appendChild(b);
+    strip.appendChild(cell);
+  }
+  q('#weekSummary').textContent=weekCalls===0?'No calls logged this week yet — the week is young.':weekCalls+' call'+(weekCalls===1?'':'s')+' logged this week.';
+  var st=callStreak();
+  q('#streakLine').textContent=st>0?('Call streak: '+st+' day'+(st===1?'':'s')+' in a row. Keep it going.'):'No streak yet — log a call today to start one.';
+  var list=q('#callList'); list.innerHTML='';
+  var entries=[];
+  state.people.forEach(function(p){ (p.calls||[]).forEach(function(d){ entries.push({d:d,name:p.name,place:p.place}); }); });
+  entries.sort(function(a,b){ return b.d<a.d?-1:1; });
+  entries.slice(0,8).forEach(function(e){
+    var li=el('li');
+    li.innerHTML='<span><b>'+esc(e.name)+'</b> <span class="muted">· '+esc(e.place)+'</span></span><span class="when">'+prettyDate(e.d)+'</span>';
+    list.appendChild(li);
+  });
+  if(!entries.length) list.innerHTML='<li>No calls logged yet.</li>';
+}
