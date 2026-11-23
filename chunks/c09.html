@@ -1,0 +1,122 @@
+<script>
+(function(){
+'use strict';
+var HOME_TZ='Asia/Kolkata';
+var LS_KEY='callhome-v1';
+var AVATAR_COLORS=['terra','bronze','green','night'];
+
+var PLACES=[
+ {id:'Asia/Kolkata',label:'Bengaluru, India',short:'Bengaluru'},
+ {id:'Europe/Rome',label:'Casoria (Naples), Italy',short:'Casoria, Italy'},
+ {id:'Asia/Dubai',label:'Dubai, UAE',short:'Dubai'},
+ {id:'Europe/London',label:'London, UK',short:'London'},
+ {id:'Asia/Singapore',label:'Singapore',short:'Singapore'},
+ {id:'America/Toronto',label:'Toronto, Canada',short:'Toronto'},
+ {id:'Australia/Sydney',label:'Sydney, Australia',short:'Sydney'},
+ {id:'Asia/Qatar',label:'Doha, Qatar',short:'Doha'},
+ {id:'America/New_York',label:'New York, USA',short:'New York'},
+ {id:'Europe/Berlin',label:'Berlin, Germany',short:'Berlin'},
+ {id:'Asia/Kuala_Lumpur',label:'Kuala Lumpur, Malaysia',short:'Kuala Lumpur'},
+ {id:'Asia/Tokyo',label:'Tokyo, Japan',short:'Tokyo'},
+ {id:'Pacific/Auckland',label:'Auckland, New Zealand',short:'Auckland'},
+ {id:'Asia/Kuwait',label:'Kuwait City, Kuwait',short:'Kuwait City'}
+];
+function placeById(id){ for(var i=0;i<PLACES.length;i++){ if(PLACES[i].id===id) return PLACES[i]; } return {id:id,label:id,short:id}; }
+
+function samplePeople(){
+  return [
+    {id:'p-amma',name:'Amma',place:'Kottayam, Kerala',tz:'Asia/Kolkata',wake:360,sleep:1320,lastCalled:'2026-11-22',calls:['2026-11-18','2026-11-20','2026-11-22'],sample:true,color:0},
+    {id:'p-devika',name:'Devika',place:'Casoria, Italy',tz:'Europe/Rome',wake:420,sleep:1350,lastCalled:'2026-11-21',calls:['2026-11-19','2026-11-21'],sample:true,color:1},
+    {id:'p-arjun',name:'Arjun',place:'Dubai, UAE',tz:'Asia/Dubai',wake:420,sleep:1380,lastCalled:'2026-11-20',calls:['2026-11-20'],sample:true,color:2},
+    {id:'p-meera',name:'Meera',place:'Toronto, Canada',tz:'America/Toronto',wake:480,sleep:1320,lastCalled:'2026-11-18',calls:['2026-11-18'],sample:true,color:3}
+  ];
+}
+function defaultState(){
+  return {
+    seen:false,
+    places:['Asia/Kolkata','Europe/Rome','Asia/Dubai','Europe/London','Asia/Singapore','America/Toronto'],
+    people:samplePeople(),
+    finderA:'home',finderB:'p-devika'
+  };
+}
+var state;
+try{
+  var raw=localStorage.getItem(LS_KEY);
+  state=raw?JSON.parse(raw):defaultState();
+  if(!state||!Array.isArray(state.people)||!Array.isArray(state.places)) state=defaultState();
+}catch(e){ state=defaultState(); }
+function save(){ try{ localStorage.setItem(LS_KEY,JSON.stringify(state)); }catch(e){} }
+
+/* ---------- time-zone helpers (all on-device, via Intl) ---------- */
+function partsInZone(tz,date){
+  var fmt=new Intl.DateTimeFormat('en-US',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,weekday:'short'});
+  var p={}; fmt.formatToParts(date).forEach(function(x){ p[x.type]=x.value; });
+  var h=parseInt(p.hour,10); if(h===24) h=0;
+  return {y:parseInt(p.year,10),mo:parseInt(p.month,10),d:parseInt(p.day,10),h:h,mi:parseInt(p.minute,10),s:parseInt(p.second,10),wd:p.weekday};
+}
+function tzOffsetMin(tz,date){
+  var p=partsInZone(tz,date);
+  var asUTC=Date.UTC(p.y,p.mo-1,p.d,p.h,p.mi,p.s);
+  return Math.round((asUTC-date.getTime())/60000);
+}
+function zonedToUtc2(tz,y,mo,d,h,mi){
+  var utc=Date.UTC(y,mo-1,d,h,mi);
+  var off1=tzOffsetMin(tz,new Date(utc));
+  var t1=utc-off1*60000;
+  var off2=tzOffsetMin(tz,new Date(t1));
+  return new Date(utc-off2*60000);
+}
+function localMinutes(tz,date){ var p=partsInZone(tz,date); return p.h*60+p.mi; }
+function toMin(str){ var a=str.split(':'); return parseInt(a[0],10)*60+parseInt(a[1],10); }
+function fromMin(m){ m=((m%1440)+1440)%1440; var h=Math.floor(m/60), mi=m%60, ap=h>=12?'PM':'AM', h12=h%12; if(h12===0) h12=12; return h12+':'+String(mi).padStart(2,'0')+' '+ap; }
+function fromMin24(m){ m=((m%1440)+1440)%1440; return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
+function isAwakeAt(tz,wake,sleep,date){
+  var m=localMinutes(tz,date);
+  if(wake===sleep) return true;
+  if(wake<sleep) return m>=wake&&m<sleep;
+  return m>=wake||m<sleep;
+}
+function fmtOffset(min){
+  var sign=min>=0?'+':'-'; var a=Math.abs(min);
+  var h=Math.floor(a/60), m=a%60;
+  return 'UTC'+sign+h+(m?':'+String(m).padStart(2,'0'):'');
+}
+function dayLabel(tz,date){
+  var p=partsInZone(tz,date);
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return p.wd+', '+p.d+' '+months[p.mo-1];
+}
+function localDateStr(date){
+  return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+}
+function dateNDaysAgo(n){
+  var d=new Date(); d.setDate(d.getDate()-n); return localDateStr(d);
+}
+/* Overlap of two awake windows, sampled every 5 min across one UTC day.
+   Returns windows in HOME-zone minutes [0,1440), each {start,end} (end may be 1440). */
+function overlapWindows(tzA,wakeA,sleepA,tzB,wakeB,sleepB,refDate){
+  var start=Date.UTC(refDate.getFullYear(),refDate.getMonth(),refDate.getDate(),0,0,0)-tzOffsetMin(HOME_TZ,refDate)*60000;
+  /* start = midnight home time, as a UTC instant */
+  var wins=[], cur=null;
+  for(var i=0;i<288;i++){
+    var t=new Date(start+i*5*60000);
+    var ok=isAwakeAt(tzA,wakeA,sleepA,t)&&isAwakeAt(tzB,wakeB,sleepB,t);
+    var homeMin=i*5;
+    if(ok&&cur===null) cur={start:homeMin,end:homeMin+5};
+    else if(ok) cur.end=homeMin+5;
+    else if(cur!==null){ wins.push(cur); cur=null; }
+  }
+  if(cur!==null) wins.push(cur);
+  /* merge a window that wraps midnight (start 0 + end 1440) */
+  if(wins.length>1&&wins[0].start===0&&wins[wins.length-1].end===1440){
+    var last=wins.pop(); wins[0]={start:last.start-1440,end:wins[0].end};
+  }
+  return wins;
+}
+function nextWindowStart(tz,wake,sleep,fromDate){
+  for(var i=0;i<288;i++){
+    var t=new Date(fromDate.getTime()+i*5*60000);
+    if(isAwakeAt(tz,wake,sleep,t)) return t;
+  }
+  return null;
+}
