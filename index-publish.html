@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CallHome — Never Ring at the Wrong Hour</title>
+<meta name="description" content="Live world clocks, best-time-to-call windows and call plans for the people you love — across every time zone.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#faf3e7; --paper2:#f3e8d3; --card:#fffdf7; --ink:#2b1d12; --ink2:#5c4632;
+  --mut:#8a7360; --line:#e6d9c2; --line2:#d9c6a4; --bronze:#b07d2b; --gold:#d9a441;
+  --gold-soft:#f6e3bd; --terra:#c05b2e; --terra-d:#9c4520; --terra-soft:#f9e2d4;
+  --green:#3f7a4e; --green-soft:#dcebd9; --night:#3a2c22; --night2:#241a12;
+  --shadow:0 10px 30px rgba(43,29,18,.10); --shadow-lg:0 24px 60px rgba(43,29,18,.18);
+  --r:18px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.serif{font-family:Fraunces,Georgia,serif;font-weight:650;letter-spacing:-.01em}
+a{color:var(--terra-d)}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:15px;color:var(--ink)}
+img{max-width:100%;display:block}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+.kicker{font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--bronze)}
+.muted{color:var(--mut)}
+.small{font-size:13px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 11px;font-size:12.5px;font-weight:700;border:1px solid var(--line2);background:var(--card)}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.pill.awake{background:var(--green-soft);border-color:#bcd8b4;color:#2c5a38}
+.pill.asleep{background:#ece2d2;border-color:#d8c8ac;color:#6d5a44}
+.pill.gold{background:var(--gold-soft);border-color:#e8c98a;color:#7a5a16}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:999px;padding:11px 20px;font-weight:700;font-size:14.5px;text-decoration:none}
+.btn:hover{background:#3d2a1a}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line2)}
+.btn.ghost:hover{border-color:var(--ink);background:var(--card)}
+.btn.terra{background:var(--terra);border-color:var(--terra)}
+.btn.terra:hover{background:var(--terra-d)}
+.btn.sm{padding:8px 14px;font-size:13.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.sec{padding:34px 0 8px}
+.sec-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.sec-head h2{margin:4px 0 0;font-size:30px;line-height:1.15}
+.sec-head p{margin:6px 0 0;color:var(--ink2);max-width:640px}
+/* ---------- intro ---------- */
+#intro{position:fixed;inset:0;z-index:200;background:radial-gradient(120% 100% at 50% 0%,#4a2f1a 0%,#2b1d12 55%,#1d130b 100%);color:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;transition:opacity .6s ease,visibility .6s}
+#intro.done{opacity:0;visibility:hidden;pointer-events:none}
+#intro .glyph{width:86px;height:86px;border-radius:50%;border:1.5px solid rgba(217,164,65,.7);display:flex;align-items:center;justify-content:center;animation:spinSlow 9s linear infinite;margin-bottom:22px}
+#intro .glyph svg{animation:spinSlow 9s linear infinite reverse}
+@keyframes spinSlow{to{transform:rotate(360deg)}}
+#intro h1{margin:0;font-size:clamp(38px,8vw,64px);line-height:1.02}
+#intro h1 .st{display:block;opacity:0;transform:translateY(16px);animation:rise .8s ease forwards}
+#intro h1 .st:nth-child(2){animation-delay:.35s;color:var(--gold)}
+#intro h1 .st:nth-child(3){animation-delay:.7s;font-size:.42em;font-family:Inter,sans-serif;font-weight:500;letter-spacing:.02em;color:#e8d9bd}
+@keyframes rise{to{opacity:1;transform:none}}
+#intro .bar{width:min(300px,70vw);height:5px;border-radius:99px;background:rgba(250,243,231,.18);margin-top:30px;overflow:hidden}
+#intro .bar i{display:block;height:100%;width:0;background:var(--gold);border-radius:99px;animation:barFill 3.4s ease forwards}
+@keyframes barFill{to{width:100%}}
+#skipIntro{position:absolute;bottom:26px;right:26px;background:transparent;border:1px solid rgba(250,243,231,.5);color:var(--paper);border-radius:999px;padding:9px 18px;font-weight:700}
+#skipIntro:hover{background:rgba(250,243,231,.12)}
+/* ---------- masthead ---------- */
+header.mast{position:sticky;top:0;z-index:60;background:rgba(250,243,231,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.mast-in{display:flex;align-items:center;gap:14px;padding:12px 20px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.logo .mark{width:38px;height:38px;border-radius:12px;background:var(--ink);color:var(--gold);display:flex;align-items:center;justify-content:center;font-family:Fraunces,serif;font-weight:800;font-size:19px}
+.logo b{font-family:Fraunces,serif;font-size:21px;letter-spacing:-.01em}
+.logo small{display:block;font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.18em;color:var(--bronze);text-transform:uppercase}
+.mast-clock{margin-left:auto;text-align:right;line-height:1.25}
+.mast-clock b{font-size:19px;font-variant-numeric:tabular-nums}
+.mast-clock span{display:block;font-size:11.5px;color:var(--mut);font-weight:600}
+.mast nav{display:flex;gap:4px}
+.mast nav a{padding:8px 12px;border-radius:999px;text-decoration:none;color:var(--ink2);font-weight:600;font-size:14px}
+.mast nav a:hover{background:var(--paper2);color:var(--ink)}
+/* ---------- hero ---------- */
+.hero{position:relative;border-radius:0 0 28px 28px;overflow:hidden}
+.hero .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:kenburns 26s ease-in-out infinite alternate}
+@keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.09) translate(-1%,-1.5%)}}
+.hero .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(29,19,11,.62) 0%,rgba(29,19,11,.28) 45%,rgba(29,19,11,.78) 100%)}
+.hero-in{position:relative;padding:74px 20px 150px;max-width:1120px;margin:0 auto;color:#fdf8ee}
+.hero h1{font-size:clamp(38px,6.4vw,62px);line-height:1.04;margin:10px 0 14px;max-width:640px;text-shadow:0 2px 22px rgba(0,0,0,.35)}
+.hero h1 em{color:var(--gold);font-style:normal}
+.hero p.lede{font-size:18px;line-height:1.6;max-width:560px;color:#f3e8d3;margin:0 0 22px}
+.hero-cta{display:flex;gap:10px;flex-wrap:wrap}
+.hero-cta .btn{border-color:#f6e3bd}
+.hero-cta .btn.ghost{color:#fdf8ee;border-color:rgba(253,248,238,.6)}
+.hero-stats{display:flex;gap:26px;flex-wrap:wrap;margin-top:30px}
+.hero-stats div b{display:block;font-family:Fraunces,serif;font-size:26px}
+.hero-stats div span{font-size:12.5px;color:#e8d9bd;font-weight:600}
+/* ---------- right-now card (overlaps hero) ---------- */
+.now-card{margin:-108px auto 0;position:relative;z-index:5;padding:22px 24px;display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:center}
+.now-card .who{display:flex;gap:16px;align-items:center}
+.avatar{width:58px;height:58px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-family:Fraunces,serif;font-weight:800;font-size:22px;color:#fff}
+.avatar.terra{background:var(--terra)}
+.avatar.bronze{background:var(--bronze)}
+.avatar.green{background:var(--green)}
+.avatar.night{background:var(--night)}
+.now-card h3{margin:0 0 3px;font-size:23px}
+.now-card .verdict{margin:0;color:var(--ink2)}
+.now-meta{text-align:right}
+.now-meta .cd{font-family:Fraunces,serif;font-size:30px;font-variant-numeric:tabular-nums;line-height:1.1}
+.now-meta .lbl{font-size:12.5px;color:var(--mut);font-weight:600}
+/* ---------- clock wall ---------- */
+.wall{display:flex;gap:14px;overflow-x:auto;padding:6px 2px 14px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.wall::-webkit-scrollbar{height:8px}
+.wall::-webkit-scrollbar-thumb{background:var(--line2);border-radius:99px}
+.clock-card{min-width:228px;flex:0 0 228px;scroll-snap-align:start;padding:18px;position:relative;overflow:hidden}
+.clock-card.home{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),var(--shadow)}
+.clock-card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.clock-card h3{margin:0;font-size:19px}
+.clock-card .city{font-size:12.5px;color:var(--mut);font-weight:600}
+.analog{width:74px;height:74px;flex:none}
+.clock-card .dig{font-family:Fraunces,serif;font-size:32px;line-height:1;font-variant-numeric:tabular-nums;margin:12px 0 2px}
+.clock-card .dig small{font-size:15px;color:var(--mut);font-family:Inter,sans-serif;font-weight:600}
+.clock-card .date{font-size:13px;color:var(--ink2);font-weight:600}
+.clock-card .foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px}
+.clock-card .off{font-size:12.5px;color:var(--mut);font-weight:600}
+.clock-card .rm{position:absolute;top:10px;right:10px;border:0;background:transparent;color:var(--mut);font-size:16px;line-height:1;padding:4px}
+.clock-card .rm:hover{color:var(--terra-d)}
+.add-clock{min-width:200px;flex:0 0 200px;border:1.5px dashed var(--line2);border-radius:var(--r);background:transparent;padding:18px;text-align:left;color:var(--ink2)}
+.add-clock:hover{border-color:var(--bronze);color:var(--ink)}
+.add-clock b{display:block;font-size:16px;margin:8px 0 4px}
+.add-clock span{font-size:13px}
+/* ---------- finder / day wheel ---------- */
+.finder{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.finder .card{padding:22px 24px}
+.pick-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.field label{display:block;font-size:12.5px;font-weight:700;color:var(--ink2);margin-bottom:6px}
+.field select,.field input[type="time"],.field input[type="date"],.field input[type="text"]{width:100%;padding:11px 12px;border:1.5px solid var(--line2);border-radius:12px;background:var(--card)}
+.field select:focus,.field input:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+.wake-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.wheel-wrap{display:flex;flex-direction:column;align-items:center;padding:6px 0 2px}
+.wheel-wrap svg{max-width:100%;height:auto}
+.wheel-legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:6px;font-size:12.5px;font-weight:600;color:var(--ink2)}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+.verdict-box{margin-top:14px;padding:14px 16px;border-radius:14px;background:var(--gold-soft);border:1px solid #e8c98a}
+.verdict-box p{margin:0;font-weight:600}
+.win-list{margin:12px 0 0;padding:0;list-style:none}
+.win-list li{display:flex;justify-content:space-between;gap:10px;padding:9px 2px;border-top:1px dashed var(--line2);font-size:14.5px}
+.win-list li b{font-variant-numeric:tabular-nums}
+.win-list li span{color:var(--ink2)}
+/* ---------- people ---------- */
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.person{padding:20px;display:flex;flex-direction:column;gap:12px}
+.person .head{display:flex;gap:12px;align-items:center}
+.person h3{margin:0;font-size:20px}
+.person .place{font-size:13px;color:var(--mut);font-weight:600}
+.person .tzline{font-size:13.5px;color:var(--ink2)}
+.person .tzline b{font-variant-numeric:tabular-nums}
+.person .best{background:var(--paper2);border-radius:12px;padding:10px 12px;font-size:13.5px}
+.person .best b{color:var(--terra-d)}
+.person .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.person .row .btn{flex:1;justify-content:center}
+.streak-chip{font-size:12px;font-weight:800;color:var(--bronze)}
+.wake-edit{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink2);flex-wrap:wrap}
+.wake-edit input{width:96px;padding:7px 9px;border:1.5px solid var(--line2);border-radius:10px;background:var(--card)}
+
+/* ---------- planner ---------- */
+.planner-grid{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}
+.planner-grid .card{padding:22px 24px}
+.plan-table{width:100%;border-collapse:collapse;font-size:14.5px}
+.plan-table th{text-align:left;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:8px 10px;border-bottom:2px solid var(--line)}
+.plan-table td{padding:11px 10px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.plan-table tr:last-child td{border-bottom:0}
+.plan-table tr.home-row td{background:var(--gold-soft);font-weight:700}
+.plan-table .daytag{font-size:12px;font-weight:700;color:var(--mut)}
+/* ---------- call log ---------- */
+.log-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.log-grid .card{padding:22px 24px}
+.week-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:14px 0 4px}
+.week-day{text-align:center;font-size:12px;color:var(--mut);font-weight:700}
+.week-day b{display:flex;align-items:center;justify-content:center;width:38px;height:38px;margin:6px auto 0;border-radius:50%;background:var(--paper2);font-size:14px;color:var(--ink2)}
+.week-day b.hit{background:var(--green);color:#fff}
+.week-day b.today{outline:2px solid var(--gold);outline-offset:2px}
+.call-list{margin:0;padding:0;list-style:none}
+.call-list li{display:flex;justify-content:space-between;gap:10px;padding:10px 2px;border-top:1px dashed var(--line2);font-size:14.5px}
+.call-list li:first-child{border-top:0}
+.call-list .when{color:var(--mut);font-size:13px;white-space:nowrap}
+/* ---------- photo band ---------- */
+.band{position:relative;border-radius:24px;overflow:hidden;margin:36px 0 8px;min-height:280px}
+.band img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:kenburns 30s ease-in-out infinite alternate}
+.band .shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(29,19,11,.72) 0%,rgba(29,19,11,.25) 60%,rgba(29,19,11,.05) 100%)}
+.band-in{position:relative;padding:44px 34px;color:#fdf8ee;max-width:520px}
+.band-in h2{font-size:32px;line-height:1.15;margin:6px 0 10px}
+.band-in p{color:#f3e8d3;margin:0 0 18px}
+/* ---------- guides ---------- */
+.guides{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.guide{padding:20px 22px}
+.guide h3{margin:0 0 6px;font-size:19px}
+.guide p{margin:0;color:var(--ink2);font-size:14.5px}
+/* ---------- settings / footer ---------- */
+.settings{padding:22px 24px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+footer.site{margin-top:44px;border-top:1px solid var(--line);padding:26px 0 40px;color:var(--mut);font-size:13.5px}
+footer.site .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+/* ---------- coach / toast ---------- */
+#tour{position:fixed;z-index:120;max-width:300px;background:var(--ink);color:var(--paper);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow-lg);display:none}
+#tour.show{display:block}
+#tour h3{margin:0 0 6px;font-size:18px;color:var(--gold)}
+#tour p{margin:0 0 14px;font-size:14px;color:#efe3cb}
+#tour .row{display:flex;gap:8px;justify-content:space-between;align-items:center}
+#tour .steps{font-size:12.5px;color:#cbb894;font-weight:700}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,80px);z-index:130;background:var(--ink);color:var(--paper);padding:12px 20px;border-radius:999px;font-weight:600;font-size:14px;box-shadow:var(--shadow-lg);opacity:0;transition:all .35s ease;pointer-events:none;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.noscript{padding:20px;background:var(--terra-soft);border:1px solid #e5b79b;border-radius:12px;margin:16px 0}
+@media (max-width:860px){
+  .now-card{grid-template-columns:1fr}
+  .now-meta{text-align:left}
+  .finder,.planner-grid,.log-grid{grid-template-columns:1fr}
+  .mast nav{display:none}
+  .hero-in{padding:56px 20px 140px}
+}
+@media (max-width:520px){
+  .sec-head h2{font-size:25px}
+  .hero-stats{gap:18px}
+  .pick-row,.wake-row{grid-template-columns:1fr}
+  .clock-card{min-width:210px;flex-basis:210px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+}
+@media print{
+  header.mast,.hero,.band,.guides,.settings,footer.site,#tour,#intro,.toast,.now-card .row{display:none!important}
+  body{background:#fff}
+  .wall{overflow:visible;flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+<div id="intro" role="dialog" aria-label="Welcome to CallHome">
+  <button id="skipIntro" type="button">Skip intro</button>
+  <div class="glyph" aria-hidden="true">
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#d9a441" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+  </div>
+  <h1><span class="st">CALLHOME</span><span class="st">Never ring at the wrong hour.</span><span class="st">Live clocks and best-time windows for the people you love, across every time zone.</span></h1>
+  <div class="bar" aria-hidden="true"><i></i></div>
+</div>
+
+<header class="mast">
+  <div class="wrap mast-in">
+    <a class="logo" href="#top">
+      <span class="mark" aria-hidden="true">C</span>
+      <span><b>CallHome</b><small>World clock &amp; call planner</small></span>
+    </a>
+    <nav aria-label="Sections">
+      <a href="#wall">Clocks</a>
+      <a href="#finder">Best time</a>
+      <a href="#people">People</a>
+      <a href="#planner">Plan a call</a>
+      <a href="#guides">Guides</a>
+    </nav>
+    <div class="mast-clock" aria-label="Current time in Bengaluru">
+      <b id="mastClock">--:--</b>
+      <span>Bengaluru · IST · <span id="mastDate">—</span></span>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <img class="bg" src="callhome-hero.webp" alt="A young man smiling on a video call with his family at golden hour" onerror="this.style.display='none'">
+  <div class="shade" aria-hidden="true"></div>
+  <div class="hero-in">
+    <span class="kicker" style="color:#e8c98a">World clock &middot; Best time to call &middot; Call plans</span>
+    <h1>Never ring at <em>the wrong hour.</em></h1>
+    <p class="lede">Your people live in different time zones. CallHome keeps their clocks on your wall, works out the hours when you are both awake, and tells you — in plain words — the best time to call.</p>
+    <div class="hero-cta">
+      <a class="btn terra" href="#finder">Find the best time to call</a>
+      <a class="btn ghost" href="#wall">See all clocks</a>
+    </div>
+    <div class="hero-stats">
+      <div><b id="statPeople">4</b><span>people saved</span></div>
+      <div><b id="statAwake">—</b><span>awake right now</span></div>
+      <div><b id="statStreak">—</b><span>day call streak</span></div>
+      <div><b>14</b><span>time zones to add</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <section class="card now-card" aria-label="Best person to call right now">
+    <div class="who">
+      <div class="avatar terra" id="nowAvatar" aria-hidden="true">D</div>
+      <div>
+        <span class="kicker">Best to call right now</span>
+        <h3 id="nowName">—</h3>
+        <p class="verdict" id="nowVerdict">Checking clocks…</p>
+      </div>
+    </div>
+    <div class="now-meta">
+      <div class="cd" id="nowCountdown">--:--:--</div>
+      <div class="lbl" id="nowCountdownLabel">until the next good window opens</div>
+      <div style="margin-top:12px"><button class="btn sm terra" type="button" id="nowCallBtn">Mark as called</button></div>
+    </div>
+  </section>
+
+  <section class="sec" id="wall" aria-label="World clocks">
+    <div class="sec-head">
+      <div>
+        <span class="kicker">Your wall</span>
+        <h2>Every clock that matters, at a glance.</h2>
+        <p>Home is Bengaluru, IST. The gold card is home. A green pill means awake, a grey pill means asleep — so you never have to do the maths in your head.</p>
+      </div>
+      <button class="btn ghost sm" type="button" id="addPlaceBtn">+ Add a place</button>
+    </div>
+    <div class="wall" id="clockWall" role="list"></div>
+    <p class="small muted" id="wallNote">Times tick live. Offsets are shown against home (IST, UTC+5:30). Europe and North America move their clocks for daylight saving — India does not — so these gaps shift by an hour in summer.</p>
+  </section>
+
+  <section class="sec" id="finder" aria-label="Best time to call finder">
+    <div class="sec-head">
+      <div>
+        <span class="kicker">Best-time finder</span>
+        <h2>When are you both awake?</h2>
+        <p>Pick two people. The day wheel shows when each of them is awake and where the hours overlap — in plain words, in both of their local times.</p>
+      </div>
+    </div>
+    <div class="finder">
+      <div class="card">
+        <div class="pick-row">
+          <div class="field">
+            <label for="pickA">Person A</label>
+            <select id="pickA"></select>
+          </div>
+          <div class="field">
+            <label for="pickB">Person B</label>
+            <select id="pickB"></select>
+          </div>
+        </div>
+        <div class="wake-row">
+          <div class="field">
+            <label for="wakeA">A is usually awake</label>
+            <input type="time" id="wakeA" value="07:00"> <span class="small muted">to</span>
+            <input type="time" id="sleepA" value="22:30" style="margin-top:6px">
+          </div>
+          <div class="field">
+            <label for="wakeB">B is usually awake</label>
+            <input type="time" id="wakeB" value="07:00"> <span class="small muted">to</span>
+            <input type="time" id="sleepB" value="22:30" style="margin-top:6px">
+          </div>
+        </div>
+        <div class="verdict-box"><p id="finderVerdict">Pick two people to see your shared hours.</p></div>
+        <ul class="win-list" id="winList"></ul>
+        <p class="small muted" style="margin-top:12px">Awake hours are yours to edit — they stay on this device only. The wheel is drawn in home time (IST), so the gold arc is the window on your clock.</p>
+      </div>
+      <div class="card">
+        <div class="wheel-wrap">
+          <svg id="dayWheel" width="300" height="300" viewBox="0 0 300 300" role="img" aria-label="24-hour day wheel showing shared awake hours"></svg>
+          <div class="wheel-legend">
+            <span><i class="sw" style="background:#d9a441"></i>Both awake</span>
+            <span><i class="sw" style="background:#e3cfa5"></i>Only A awake</span>
+            <span><i class="sw" style="background:#e8b49a"></i>Only B awake</span>
+            <span><i class="sw" style="background:#e6d9c2"></i>Both asleep</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="people" aria-label="Your people">
+    <div class="sec-head">
+      <div>
+        <span class="kicker">Your people</span>
+        <h2>One card per person. One tap to log a call.</h2>
+        <p>Each card shows their time right now, whether they are awake, and the best window to ring them today — in your time and theirs.</p>
+      </div>
+      <button class="btn ghost sm" type="button" id="addPersonBtn">+ Add a person</button>
+    </div>
+    <div class="people" id="peopleGrid"></div>
+    <p class="small muted" style="margin-top:10px">Sample people are marked and can be removed in Settings. Add your own people with their city — their clock appears on the wall too.</p>
+  </section>
+
+  <section class="sec" id="planner" aria-label="Plan a call">
+    <div class="sec-head">
+      <div>
+        <span class="kicker">Meeting planner</span>
+        <h2>Pick a time here. See it everywhere.</h2>
+        <p>Choose a date and a time in Bengaluru. The table shows what time that is for everyone on your wall — so nobody has to convert.</p>
+      </div>
+      <button class="btn ghost sm" type="button" id="copyPlanBtn">Copy the plan</button>
+    </div>
+    <div class="planner-grid">
+      <div class="card">
+        <div class="field" style="margin-bottom:12px">
+          <label for="planDate">Date</label>
+          <input type="date" id="planDate">
+        </div>
+        <div class="field" style="margin-bottom:12px">
+          <label for="planTime">Time in Bengaluru (IST)</label>
+          <input type="time" id="planTime" value="19:00">
+        </div>
+        <div class="field" style="margin-bottom:16px">
+          <label for="planNote">What is the call about? (optional)</label>
+          <input type="text" id="planNote" placeholder="e.g. Sunday family call" maxlength="60">
+        </div>
+        <p class="small" id="planSummary" style="font-weight:600">Pick a time to see it in every time zone.</p>
+        <p class="small muted">Tip: 7:00 PM in Bengaluru is 2:30 PM in Italy in winter and 3:30 PM in summer — Europe moves its clocks, India does not.</p>
+      </div>
+      <div class="card" style="overflow-x:auto">
+        <table class="plan-table" id="planTable" aria-label="Planned call time in every place"></table>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="log" aria-label="Call log">
+    <div class="sec-head">
+      <div>
+        <span class="kicker">Call log</span>
+        <h2>Small calls, kept up.</h2>
+        <p>Your week at a glance. A filled dot is a day you rang someone. The streak counts back from today — it only grows if you keep calling.</p>
+      </div>
+      <button class="btn ghost sm" type="button" id="copyWeekBtn">Copy this week</button>
+    </div>
+    <div class="log-grid">
+      <div class="card">
+        <h3 style="margin:0">This week</h3>
+        <div class="week-strip" id="weekStrip"></div>
+        <p class="small muted" id="weekSummary">—</p>
+        <p style="margin:14px 0 0;font-size:15px"><b id="streakLine">—</b></p>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 6px">Recent calls</h3>
+        <ul class="call-list" id="callList"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-label="A quiet reminder">
+    <img src="callhome-flatlay.webp" alt="A phone showing world clocks, a small globe, a passport and filter coffee on a linen cloth" loading="lazy" onerror="this.style.display='none'">
+    <div class="shade" aria-hidden="true"></div>
+    <div class="band-in">
+      <span class="kicker" style="color:#e8c98a">The habit that matters</span>
+      <h2>Five minutes, once a week, keeps home close.</h2>
+      <p>Pick one fixed slot — Sunday evening works for most families — and let the wheel find the hour that suits everyone.</p>
+      <a class="btn" href="#planner">Plan Sunday's call</a>
+    </div>
+  </section>
+
+  <section class="sec" id="guides" aria-label="Plain-language guides">
+    <div class="sec-head">
+      <div>
+        <span class="kicker">Plain-language guides</span>
+        <h2>Time zones, without the headache.</h2>
+      </div>
+    </div>
+    <div class="guides" id="guidesGrid"></div>
+  </section>
+
+  <section class="sec" aria-label="Settings">
+    <div class="card settings">
+      <div>
+        <h3 style="margin:0 0 4px">Your data stays on this device.</h3>
+        <p class="small muted" style="margin:0">No account, no sign-up, nothing leaves your phone or laptop. Samples are only examples — remove them when you add your own people.</p>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn ghost sm" type="button" id="removeSamplesBtn">Remove samples</button>
+        <button class="btn ghost sm" type="button" id="eraseBtn">Erase everything</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <span>CallHome — built for families spread across time zones. All times are computed on your device from the official IANA time-zone database in your browser.</span>
+    <span>Home time zone: Asia/Kolkata (IST, UTC+5:30, no daylight saving).</span>
+  </div>
+</footer>
+
+<div id="tour" role="dialog" aria-label="Quick tour">
+  <h3 id="tourTitle"></h3>
+  <p id="tourText"></p>
+  <div class="row">
+    <span class="steps" id="tourSteps"></span>
+    <span>
+      <button class="btn ghost sm" type="button" id="tourSkip" style="color:#faf3e7;border-color:rgba(250,243,231,.4)">Skip</button>
+      <button class="btn sm" type="button" id="tourNext" style="background:#d9a441;border-color:#d9a441;color:#2b1d12">Next</button>
+    </span>
+  </div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<noscript><div class="wrap"><p class="noscript">CallHome needs JavaScript to work out the clocks — please enable it and reload.</p></div></noscript>
+
+<div id="sheet" hidden style="position:fixed;inset:0;z-index:150;align-items:flex-end;justify-content:center;background:rgba(29,19,11,.55)" role="dialog" aria-modal="true" aria-label="Add">
+  <div class="card" style="width:min(520px,94vw);margin:0 0 20px;padding:24px;max-height:86vh;overflow:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <h3 id="sheetTitle" style="margin:0;font-size:22px">Add a person</h3>
+      <button type="button" id="sheetClose" aria-label="Close" style="border:0;background:transparent;font-size:22px;line-height:1;color:var(--mut)">&times;</button>
+    </div>
+    <div id="sheetPerson">
+      <div class="field" style="margin:14px 0 12px"><label for="npName">Name</label><input type="text" id="npName" placeholder="e.g. Devika" maxlength="40"></div>
+      <div class="field" style="margin-bottom:12px"><label for="npPlace">City and country</label><input type="text" id="npPlace" placeholder="e.g. Casoria, Italy" maxlength="60"></div>
+      <div class="field" style="margin-bottom:12px"><label for="npTz">Their time zone</label><select id="npTz"></select></div>
+      <div class="wake-row">
+        <div class="field"><label for="npWake">Usually awake from</label><input type="time" id="npWake" value="07:00"></div>
+        <div class="field"><label for="npSleep">Usually asleep from</label><input type="time" id="npSleep" value="22:30"></div>
+      </div>
+      <p class="small muted">Awake hours are a guess — edit them on the person's card any time.</p>
+      <button class="btn terra" type="button" id="npSave" style="width:100%;justify-content:center">Add person</button>
+    </div>
+    <div id="sheetPlace" hidden>
+      <div class="field" style="margin:14px 0 12px"><label for="apTz">Place to add</label><select id="apTz"></select></div>
+      <p class="small muted">Adds a clock to your wall and a row to the meeting planner.</p>
+      <button class="btn terra" type="button" id="apSave" style="width:100%;justify-content:center">Add to wall</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+'use strict';
+var HOME_TZ='Asia/Kolkata';
+var LS_KEY='callhome-v1';
+var AVATAR_COLORS=['terra','bronze','green','night'];
+
+var PLACES=[
+ {id:'Asia/Kolkata',label:'Bengaluru, India',short:'Bengaluru'},
+ {id:'Europe/Rome',label:'Casoria (Naples), Italy',short:'Casoria, Italy'},
+ {id:'Asia/Dubai',label:'Dubai, UAE',short:'Dubai'},
+ {id:'Europe/London',label:'London, UK',short:'London'},
+ {id:'Asia/Singapore',label:'Singapore',short:'Singapore'},
+ {id:'America/Toronto',label:'Toronto, Canada',short:'Toronto'},
+ {id:'Australia/Sydney',label:'Sydney, Australia',short:'Sydney'},
+ {id:'Asia/Qatar',label:'Doha, Qatar',short:'Doha'},
+ {id:'America/New_York',label:'New York, USA',short:'New York'},
+ {id:'Europe/Berlin',label:'Berlin, Germany',short:'Berlin'},
+ {id:'Asia/Kuala_Lumpur',label:'Kuala Lumpur, Malaysia',short:'Kuala Lumpur'},
+ {id:'Asia/Tokyo',label:'Tokyo, Japan',short:'Tokyo'},
+ {id:'Pacific/Auckland',label:'Auckland, New Zealand',short:'Auckland'},
+ {id:'Asia/Kuwait',label:'Kuwait City, Kuwait',short:'Kuwait City'}
+];
+function placeById(id){ for(var i=0;i<PLACES.length;i++){ if(PLACES[i].id===id) return PLACES[i]; } return {id:id,label:id,short:id}; }
+
+function samplePeople(){
+  return [
+    {id:'p-amma',name:'Amma',place:'Kottayam, Kerala',tz:'Asia/Kolkata',wake:360,sleep:1320,lastCalled:'2026-11-22',calls:['2026-11-18','2026-11-20','2026-11-22'],sample:true,color:0},
+    {id:'p-devika',name:'Devika',place:'Casoria, Italy',tz:'Europe/Rome',wake:420,sleep:1350,lastCalled:'2026-11-21',calls:['2026-11-19','2026-11-21'],sample:true,color:1},
+    {id:'p-arjun',name:'Arjun',place:'Dubai, UAE',tz:'Asia/Dubai',wake:420,sleep:1380,lastCalled:'2026-11-20',calls:['2026-11-20'],sample:true,color:2},
+    {id:'p-meera',name:'Meera',place:'Toronto, Canada',tz:'America/Toronto',wake:480,sleep:1320,lastCalled:'2026-11-18',calls:['2026-11-18'],sample:true,color:3}
+  ];
+}
+function defaultState(){
+  return {
+    seen:false,
+    places:['Asia/Kolkata','Europe/Rome','Asia/Dubai','Europe/London','Asia/Singapore','America/Toronto'],
+    people:samplePeople(),
+    finderA:'home',finderB:'p-devika'
+  };
+}
+var state;
+try{
+  var raw=localStorage.getItem(LS_KEY);
+  state=raw?JSON.parse(raw):defaultState();
+  if(!state||!Array.isArray(state.people)||!Array.isArray(state.places)) state=defaultState();
+}catch(e){ state=defaultState(); }
+function save(){ try{ localStorage.setItem(LS_KEY,JSON.stringify(state)); }catch(e){} }
+
+/* ---------- time-zone helpers (all on-device, via Intl) ---------- */
+function partsInZone(tz,date){
+  var fmt=new Intl.DateTimeFormat('en-US',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,weekday:'short'});
+  var p={}; fmt.formatToParts(date).forEach(function(x){ p[x.type]=x.value; });
+  var h=parseInt(p.hour,10); if(h===24) h=0;
+  return {y:parseInt(p.year,10),mo:parseInt(p.month,10),d:parseInt(p.day,10),h:h,mi:parseInt(p.minute,10),s:parseInt(p.second,10),wd:p.weekday};
+}
+function tzOffsetMin(tz,date){
+  var p=partsInZone(tz,date);
+  var asUTC=Date.UTC(p.y,p.mo-1,p.d,p.h,p.mi,p.s);
+  return Math.round((asUTC-date.getTime())/60000);
+}
+function zonedToUtc2(tz,y,mo,d,h,mi){
+  var utc=Date.UTC(y,mo-1,d,h,mi);
+  var off1=tzOffsetMin(tz,new Date(utc));
+  var t1=utc-off1*60000;
+  var off2=tzOffsetMin(tz,new Date(t1));
+  return new Date(utc-off2*60000);
+}
+function localMinutes(tz,date){ var p=partsInZone(tz,date); return p.h*60+p.mi; }
+function toMin(str){ var a=str.split(':'); return parseInt(a[0],10)*60+parseInt(a[1],10); }
+function fromMin(m){ m=((m%1440)+1440)%1440; var h=Math.floor(m/60), mi=m%60, ap=h>=12?'PM':'AM', h12=h%12; if(h12===0) h12=12; return h12+':'+String(mi).padStart(2,'0')+' '+ap; }
+function fromMin24(m){ m=((m%1440)+1440)%1440; return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
+function isAwakeAt(tz,wake,sleep,date){
+  var m=localMinutes(tz,date);
+  if(wake===sleep) return true;
+  if(wake<sleep) return m>=wake&&m<sleep;
+  return m>=wake||m<sleep;
+}
+function fmtOffset(min){
+  var sign=min>=0?'+':'-'; var a=Math.abs(min);
+  var h=Math.floor(a/60), m=a%60;
+  return 'UTC'+sign+h+(m?':'+String(m).padStart(2,'0'):'');
+}
+function dayLabel(tz,date){
+  var p=partsInZone(tz,date);
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return p.wd+', '+p.d+' '+months[p.mo-1];
+}
+function localDateStr(date){
+  return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+}
+function dateNDaysAgo(n){
+  var d=new Date(); d.setDate(d.getDate()-n); return localDateStr(d);
+}
+/* Overlap of two awake windows, sampled every 5 min across one UTC day.
+   Returns windows in HOME-zone minutes [0,1440), each {start,end} (end may be 1440). */
+function overlapWindows(tzA,wakeA,sleepA,tzB,wakeB,sleepB,refDate){
+  var start=Date.UTC(refDate.getFullYear(),refDate.getMonth(),refDate.getDate(),0,0,0)-tzOffsetMin(HOME_TZ,refDate)*60000;
+  /* start = midnight home time, as a UTC instant */
+  var wins=[], cur=null;
+  for(var i=0;i<288;i++){
+    var t=new Date(start+i*5*60000);
+    var ok=isAwakeAt(tzA,wakeA,sleepA,t)&&isAwakeAt(tzB,wakeB,sleepB,t);
+    var homeMin=i*5;
+    if(ok&&cur===null) cur={start:homeMin,end:homeMin+5};
+    else if(ok) cur.end=homeMin+5;
+    else if(cur!==null){ wins.push(cur); cur=null; }
+  }
+  if(cur!==null) wins.push(cur);
+  /* merge a window that wraps midnight (start 0 + end 1440) */
+  if(wins.length>1&&wins[0].start===0&&wins[wins.length-1].end===1440){
+    var last=wins.pop(); wins[0]={start:last.start-1440,end:wins[0].end};
+  }
+  return wins;
+}
+function nextWindowStart(tz,wake,sleep,fromDate){
+  for(var i=0;i<288;i++){
+    var t=new Date(fromDate.getTime()+i*5*60000);
+    if(isAwakeAt(tz,wake,sleep,t)) return t;
+  }
+  return null;
+}
+
+/* ---------- small DOM helpers ---------- */
+function q(s){ return document.querySelector(s); }
+function qa(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); }
+function el(tag,cls,html){ var n=document.createElement(tag); if(cls) n.className=cls; if(html!=null) n.innerHTML=html; return n; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function safeScroll(n){ try{ if(n&&n.scrollIntoView) n.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){} }
+var toastTimer=null;
+function toast(msg){ var t=q('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.classList.remove('show'); },2600); }
+function personById(id){ for(var i=0;i<state.people.length;i++){ if(state.people[i].id===id) return state.people[i]; } return null; }
+function homePerson(){ return {id:'home',name:'You (home)',place:'Bengaluru, India',tz:HOME_TZ,wake:420,sleep:1350}; }
+function finderPerson(id){ return id==='home'?homePerson():personById(id); }
+
+/* ---------- analog clock face ---------- */
+function analogSVG(tz,date){
+  var p=partsInZone(tz,date);
+  var h=((p.h%12)+p.mi/60)*30, m=p.mi*6, s=p.s*6;
+  return '<svg class="analog" viewBox="0 0 80 80" aria-hidden="true">'
+    +'<circle cx="40" cy="40" r="37" fill="#fffdf7" stroke="#d9c6a4" stroke-width="1.5"/>'
+    +'<line x1="40" y1="40" x2="40" y2="16" stroke="#2b1d12" stroke-width="2.4" stroke-linecap="round" transform="rotate('+h+' 40 40)"/>'
+    +'<line x1="40" y1="40" x2="40" y2="10" stroke="#c05b2e" stroke-width="1.6" stroke-linecap="round" transform="rotate('+m+' 40 40)"/>'
+    +'<line x1="40" y1="40" x2="40" y2="12" stroke="#b07d2b" stroke-width="0.9" stroke-linecap="round" transform="rotate('+s+' 40 40)"/>'
+    +'<circle cx="40" cy="40" r="2.6" fill="#2b1d12"/></svg>';
+}
+
+/* ---------- clock wall ---------- */
+function renderWall(){
+  var wall=q('#clockWall'); wall.innerHTML='';
+  var now=new Date();
+  state.places.forEach(function(tz){
+    var pl=placeById(tz);
+    var isHome=tz===HOME_TZ;
+    var card=el('div','clock-card'+(isHome?' home':'')); card.setAttribute('role','listitem'); card.dataset.tz=tz;
+    var top=el('div','top');
+    var title=el('div'); title.appendChild(el('h3',null,esc(pl.short)));
+    title.appendChild(el('div','city',esc(pl.label)+(isHome?' · Home':'')));
+    top.appendChild(title);
+    var svgWrap=el('div'); svgWrap.innerHTML=analogSVG(tz,now); top.appendChild(svgWrap.firstChild);
+    card.appendChild(top);
+    var dig=el('div','dig'); card.appendChild(dig);
+    var dateEl=el('div','date'); card.appendChild(dateEl);
+    var foot=el('div','foot');
+    var off=el('span','off'); foot.appendChild(off);
+    var pill=el('span','pill'); foot.appendChild(pill);
+    card.appendChild(foot);
+    if(!isHome){
+      var rm=el('button','rm','&times;'); rm.type='button'; rm.setAttribute('aria-label','Remove '+esc(pl.short)+' from wall');
+      rm.addEventListener('click',function(){ state.places=state.places.filter(function(x){return x!==tz;}); save(); renderAll(); toast(pl.short+' removed from your wall'); });
+      card.appendChild(rm);
+    }
+    wall.appendChild(card);
+  });
+  var add=el('button','add-clock','<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#b07d2b" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg><b>Add a place</b><span>London, Sydney, Toronto and 10 more time zones.</span>');
+  add.type='button'; add.addEventListener('click',openPlaceSheet);
+  wall.appendChild(add);
+  updateClocks();
+}
+function updateClocks(){
+  var now=new Date();
+  var homeOff=tzOffsetMin(HOME_TZ,now);
+  qa('.clock-card').forEach(function(card){
+    var tz=card.dataset.tz; if(!tz) return;
+    var p=partsInZone(tz,now);
+    var h12=p.h%12; if(h12===0) h12=12;
+    var dig=card.querySelector('.dig');
+    dig.innerHTML=h12+':'+String(p.mi).padStart(2,'0')+'<small>:'+String(p.s).padStart(2,'0')+' '+(p.h>=12?'PM':'AM')+'</small>';
+    card.querySelector('.date').textContent=dayLabel(tz,now);
+    var off=tzOffsetMin(tz,now)-homeOff;
+    var offEl=card.querySelector('.off');
+    offEl.textContent=tz===HOME_TZ?fmtOffset(homeOff)+' · IST':(off===0?'Same time as home':(off>0?'+':'')+Math.floor(Math.abs(off)/60)+(Math.abs(off)%60?'h '+Math.abs(off)%60+'m':'h')+(off>0?' ahead':' behind'));
+    var isDay=p.h>=6&&p.h<19;
+    var pill=card.querySelector('.pill');
+    pill.className='pill '+(isDay?'awake':'asleep');
+    pill.innerHTML='<span class="dot" style="background:'+(isDay?'#3f7a4e':'#8a7360')+'"></span>'+(isDay?'Daytime':'Night');
+    var svg=card.querySelector('.analog');
+    if(svg){ var tmp=el('div'); tmp.innerHTML=analogSVG(tz,now); svg.replaceWith(tmp.firstChild); }
+  });
+  var hp=partsInZone(HOME_TZ,now);
+  var h12=hp.h%12; if(h12===0) h12=12;
+  q('#mastClock').textContent=h12+':'+String(hp.mi).padStart(2,'0')+' '+(hp.h>=12?'PM':'AM');
+  q('#mastDate').textContent=dayLabel(HOME_TZ,now);
+}
+
+/* ---------- best person to call now ---------- */
+function bestToCallNow(now){
+  var best=null;
+  state.people.forEach(function(p){
+    if(!isAwakeAt(p.tz,p.wake,p.sleep,now)) return;
+    var mins=localMinutes(p.tz,now);
+    var score=Math.min(Math.abs(mins-p.wake),Math.abs(p.sleep-mins));
+    if(!best||score>best.score) best={p:p,score:score};
+  });
+  return best?best.p:null;
+}
+function updateNowCard(){
+  var now=new Date();
+  var best=bestToCallNow(now);
+  var awakeCount=state.people.filter(function(p){ return isAwakeAt(p.tz,p.wake,p.sleep,now); }).length;
+  q('#statPeople').textContent=state.people.length;
+  q('#statAwake').textContent=awakeCount+' of '+state.people.length;
+  q('#statStreak').textContent=callStreak()+' days';
+  var btn=q('#nowCallBtn');
+  if(best){
+    q('#nowAvatar').textContent=best.name.charAt(0).toUpperCase();
+    q('#nowAvatar').className='avatar '+AVATAR_COLORS[best.color||0];
+    q('#nowName').textContent=best.name+' — '+best.place;
+    var p=partsInZone(best.tz,now);
+    var h12=p.h%12; if(h12===0) h12=12;
+    q('#nowVerdict').textContent='It is '+h12+':'+String(p.mi).padStart(2,'0')+' '+(p.h>=12?'PM':'AM')+' there — a good time to ring. Their day runs '+fromMin(best.wake)+' to '+fromMin(best.sleep)+' local time.';
+    q('#nowCountdownLabel').textContent='until '+best.name+' heads to bed';
+    var bed=new Date(now.getTime());
+    var bedMin=best.sleep;
+    var bedLocal=zonedToUtc2(best.tz,partsInZone(best.tz,now).y,partsInZone(best.tz,now).mo,partsInZone(best.tz,now).d,Math.floor(bedMin/60),bedMin%60);
+    if(bedLocal<=now) bedLocal=new Date(bedLocal.getTime()+86400000);
+    var diff=Math.max(0,Math.floor((bedLocal-now)/1000));
+    var hh=Math.floor(diff/3600), mm=Math.floor(diff%3600/60), ss=diff%60;
+    q('#nowCountdown').textContent=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+    btn.disabled=false; btn.dataset.person=best.id;
+  }else{
+    q('#nowAvatar').textContent='—';
+    q('#nowName').textContent='Everyone is asleep';
+    q('#nowVerdict').textContent='All your people are in their night hours right now. The next window opens soon — check the finder below.';
+    q('#nowCountdownLabel').textContent='until the next good window opens';
+    var nxt=null;
+    state.people.forEach(function(p){
+      var t=nextWindowStart(p.tz,p.wake,p.sleep,now);
+      if(t&&(!nxt||t<nxt)) nxt=t;
+    });
+    if(nxt){
+      var diff=Math.max(0,Math.floor((nxt-now)/1000));
+      q('#nowCountdown').textContent=String(Math.floor(diff/3600)).padStart(2,'0')+':'+String(Math.floor(diff%3600/60)).padStart(2,'0')+':'+String(diff%60).padStart(2,'0');
+    }else q('#nowCountdown').textContent='--:--:--';
+    btn.disabled=true; btn.dataset.person='';
+  }
+}
+
+/* ---------- day wheel ---------- */
+function polar(cx,cy,r,deg){ var rad=(deg-90)*Math.PI/180; return [cx+r*Math.cos(rad),cy+r*Math.sin(rad)]; }
+function arcPath(cx,cy,r,a0,a1){
+  var s=polar(cx,cy,r,a0), e=polar(cx,cy,r,a1);
+  var large=(a1-a0)>180?1:0;
+  return 'M '+s[0].toFixed(1)+' '+s[1].toFixed(1)+' A '+r+' '+r+' 0 '+large+' 1 '+e[0].toFixed(1)+' '+e[1].toFixed(1);
+}
+function renderWheel(){
+  var svg=q('#dayWheel'); if(!svg) return;
+  var A=finderPerson(state.finderA), B=finderPerson(state.finderB);
+  if(!A||!B){ svg.innerHTML=''; return; }
+  var now=new Date();
+  var cx=150, cy=150, r=104;
+  var s='';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#e6d9c2" stroke-width="16"/>';
+  /* hour ticks + labels */
+  for(var h=0;h<24;h++){
+    var a=h*15, p1=polar(cx,cy,r-14,a), p2=polar(cx,cy,r-20,a);
+    s+='<line x1="'+p1[0].toFixed(1)+'" y1="'+p1[1].toFixed(1)+'" x2="'+p2[0].toFixed(1)+'" y2="'+p2[1].toFixed(1)+'" stroke="#8a7360" stroke-width="1"/>';
+    if(h%3===0){
+      var lp=polar(cx,cy,r-32,a);
+      var h12=h%12; if(h12===0) h12=12;
+      s+='<text x="'+lp[0].toFixed(1)+'" y="'+(lp[1]+4).toFixed(1)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#8a7360">'+h12+(h<12?'a':'p')+'</text>';
+    }
+  }
+  /* per-15-min state arcs */
+  for(var i=0;i<96;i++){
+    var t=new Date(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate(),0,0,0)-tzOffsetMin(HOME_TZ,now)*60000+i*15*60000);
+    var aAw=isAwakeAt(A.tz,A.wake,A.sleep,t), bAw=isAwakeAt(B.tz,B.wake,B.sleep,t);
+    var col=null;
+    if(aAw&&bAw) col='#d9a441'; else if(aAw) col='#e3cfa5'; else if(bAw) col='#e8b49a';
+    if(!col) continue;
+    var a0=i*3.75, a1=(i+1)*3.75;
+    s+='<path d="'+arcPath(cx,cy,r,a0+0.3,a1-0.3)+'" fill="none" stroke="'+col+'" stroke-width="16"/>';
+  }
+  /* now marker */
+  var homeMin=localMinutes(HOME_TZ,now);
+  var np=polar(cx,cy,r,homeMin/4);
+  s+='<circle cx="'+np[0].toFixed(1)+'" cy="'+np[1].toFixed(1)+'" r="6.5" fill="#2b1d12" stroke="#faf3e7" stroke-width="2"/>';
+  s+='<text x="'+cx+'" y="'+(cy-8)+'" text-anchor="middle" font-size="12" font-weight="700" fill="#8a7360">HOME TIME (IST)</text>';
+  s+='<text x="'+cx+'" y="'+(cy+12)+'" text-anchor="middle" font-size="21" font-weight="800" fill="#2b1d12" font-family="Fraunces,serif">'+esc(A.name)+' + '+esc(B.name)+'</text>';
+  s+='<text x="'+cx+'" y="'+(cy+32)+'" text-anchor="middle" font-size="12" fill="#5c4632">black dot = now</text>';
+  svg.innerHTML=s;
+}
+function renderFinder(){
+  var selA=q('#pickA'), selB=q('#pickB');
+  var opts='<option value="home">You (home) — Bengaluru</option>';
+  state.people.forEach(function(p){ opts+='<option value="'+p.id+'">'+esc(p.name)+' — '+esc(p.place)+'</option>'; });
+  selA.innerHTML=opts; selB.innerHTML=opts;
+  selA.value=state.finderA; selB.value=state.finderB;
+  var A=finderPerson(state.finderA), B=finderPerson(state.finderB);
+  if(!A||!B) return;
+  q('#wakeA').value=fromMin24(A.wake); q('#sleepA').value=fromMin24(A.sleep);
+  q('#wakeB').value=fromMin24(B.wake); q('#sleepB').value=fromMin24(B.sleep);
+  var wins=overlapWindows(A.tz,A.wake,A.sleep,B.tz,B.wake,B.sleep,new Date());
+  var total=wins.reduce(function(acc,w){ return acc+((w.end-w.start+1440)%1440|| (w.end-w.start)); },0);
+  var v=q('#finderVerdict');
+  if(state.finderA===state.finderB){
+    v.textContent='Pick two different people to compare their hours.';
+  }else if(!wins.length){
+    v.textContent='No shared awake hours today — '+A.name+' and '+B.name+' are on opposite schedules. Try shifting one person\u2019s awake hours, or plan a short call at the edge of their day.';
+  }else{
+    var first=wins[0];
+    var aStart=((first.start+tzOffsetMin(A.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+    var aEnd=((first.end+tzOffsetMin(A.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+    v.textContent='Best time to call: '+fromMin(first.start)+' – '+fromMin(first.end)+' your time ('+fromMin(aStart)+' – '+fromMin(aEnd)+' for '+A.name+'). That is '+Math.round(total/60*10)/10+' shared hours today.';
+  }
+  var list=q('#winList'); list.innerHTML='';
+  wins.forEach(function(w){
+    var aS=((w.start+tzOffsetMin(A.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+    var aE=((w.end+tzOffsetMin(A.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+    var bS=((w.start+tzOffsetMin(B.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+    var bE=((w.end+tzOffsetMin(B.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+    var li=el('li');
+    li.innerHTML='<b>'+fromMin(w.start)+' – '+fromMin(w.end)+' IST</b><span>'+esc(A.name)+' '+fromMin(aS)+' – '+fromMin(aE)+' · '+esc(B.name)+' '+fromMin(bS)+' – '+fromMin(bE)+'</span>';
+    list.appendChild(li);
+  });
+  renderWheel();
+}
+function finderChanged(){
+  state.finderA=q('#pickA').value; state.finderB=q('#pickB').value;
+  var A=finderPerson(state.finderA), B=finderPerson(state.finderB);
+  if(A){ q('#wakeA').value=fromMin24(A.wake); q('#sleepA').value=fromMin24(A.sleep); }
+  if(B){ q('#wakeB').value=fromMin24(B.wake); q('#sleepB').value=fromMin24(B.sleep); }
+  save(); renderFinder();
+}
+function wakeChanged(){
+  var A=finderPerson(state.finderA), B=finderPerson(state.finderB);
+  if(A){ A.wake=toMin(q('#wakeA').value||'07:00'); A.sleep=toMin(q('#sleepA').value||'22:30'); }
+  if(B){ B.wake=toMin(q('#wakeB').value||'07:00'); B.sleep=toMin(q('#sleepB').value||'22:30'); }
+  save(); renderFinder(); renderPeople(); updateNowCard();
+}
+
+/* ---------- people ---------- */
+function bestWindowToday(p){
+  var home=homePerson();
+  var wins=overlapWindows(HOME_TZ,home.wake,home.sleep,p.tz,p.wake,p.sleep,new Date());
+  if(!wins.length) return null;
+  var w=wins[0];
+  var theirS=((w.start+tzOffsetMin(p.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+  var theirE=((w.end+tzOffsetMin(p.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+  return {home:fromMin(w.start)+' – '+fromMin(w.end), theirs:fromMin(theirS)+' – '+fromMin(theirE)};
+}
+function renderPeople(){
+  var grid=q('#peopleGrid'); grid.innerHTML='';
+  var now=new Date();
+  state.people.forEach(function(p){
+    var card=el('div','card person');
+    var head=el('div','head');
+    head.appendChild(el('div','avatar '+AVATAR_COLORS[p.color||0],esc(p.name.charAt(0).toUpperCase())));
+    var nm=el('div'); nm.appendChild(el('h3',null,esc(p.name)+(p.sample?' <span class="small muted">· sample</span>':'')));
+    nm.appendChild(el('div','place',esc(p.place)));
+    head.appendChild(nm);
+    card.appendChild(head);
+    var pp=partsInZone(p.tz,now);
+    var h12=pp.h%12; if(h12===0) h12=12;
+    var awake=isAwakeAt(p.tz,p.wake,p.sleep,now);
+    var tzline=el('div','tzline','It is <b>'+h12+':'+String(pp.mi).padStart(2,'0')+' '+(pp.h>=12?'PM':'AM')+'</b> there · '+dayLabel(p.tz,now)+' · '+fmtOffset(tzOffsetMin(p.tz,now)));
+    card.appendChild(tzline);
+    var pill=el('span','pill '+(awake?'awake':'asleep'));
+    pill.innerHTML='<span class="dot" style="background:'+(awake?'#3f7a4e':'#8a7360')+'"></span>'+(awake?'Awake now — good time to call':'Asleep now');
+    card.appendChild(pill);
+    var bw=bestWindowToday(p);
+    var best=el('div','best',bw?('Best window today: <b>'+bw.home+' your time</b> · '+bw.theirs+' their time'):'No shared awake hours with home today.');
+    card.appendChild(best);
+    var we=el('div','wake-edit');
+    we.innerHTML='Awake <input type="time" data-wake="'+p.id+'" value="'+fromMin24(p.wake)+'" aria-label="Awake from"> to <input type="time" data-sleep="'+p.id+'" value="'+fromMin24(p.sleep)+'" aria-label="Asleep from">';
+    card.appendChild(we);
+    var row=el('div','row');
+    var callBtn=el('button','btn sm terra','Mark called');
+    callBtn.type='button';
+    callBtn.addEventListener('click',function(){ markCalled(p.id); });
+    row.appendChild(callBtn);
+    var del=el('button','btn sm ghost','Remove');
+    del.type='button';
+    del.addEventListener('click',function(){ state.people=state.people.filter(function(x){return x.id!==p.id;}); save(); renderAll(); toast(p.name+' removed'); });
+    row.appendChild(del);
+    var st=el('span','streak-chip','Last called: '+(p.lastCalled?prettyDate(p.lastCalled):'never'));
+    row.appendChild(st);
+    card.appendChild(row);
+    grid.appendChild(card);
+  });
+  qa('[data-wake]').forEach(function(inp){
+    inp.addEventListener('change',function(){
+      var p=personById(inp.dataset.wake); if(!p) return;
+      p.wake=toMin(inp.value||'07:00'); save(); renderFinder(); updateNowCard();
+    });
+  });
+  qa('[data-sleep]').forEach(function(inp){
+    inp.addEventListener('change',function(){
+      var p=personById(inp.dataset.sleep); if(!p) return;
+      p.sleep=toMin(inp.value||'22:30'); save(); renderFinder(); updateNowCard();
+    });
+  });
+}
+function prettyDate(iso){
+  var a=iso.split('-'); var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return parseInt(a[2],10)+' '+months[parseInt(a[1],10)-1]+' '+a[0];
+}
+function markCalled(id){
+  var p=personById(id); if(!p) return;
+  var today=localDateStr(new Date());
+  if(p.calls.indexOf(today)===-1) p.calls.push(today);
+  p.lastCalled=today;
+  save(); renderAll();
+  toast('Logged a call with '+p.name+' — nice one.');
+}
+function allCallDates(){
+  var set={};
+  state.people.forEach(function(p){ (p.calls||[]).forEach(function(d){ set[d]=true; }); });
+  return Object.keys(set).sort();
+}
+function callStreak(){
+  var dates=allCallDates(); if(!dates.length) return 0;
+  var set={}; dates.forEach(function(d){ set[d]=true; });
+  var streak=0, d=new Date();
+  if(!set[localDateStr(d)]) d.setDate(d.getDate()-1);
+  while(set[localDateStr(d)]){ streak++; d.setDate(d.getDate()-1); }
+  return streak;
+}
+/* ---------- call log ---------- */
+function renderLog(){
+  var strip=q('#weekStrip'); strip.innerHTML='';
+  var dates=allCallDates(); var set={}; dates.forEach(function(d){ set[d]=true; });
+  var today=new Date();
+  var monday=new Date(today); var dow=(today.getDay()+6)%7; monday.setDate(today.getDate()-dow);
+  var names=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  var weekCalls=0;
+  for(var i=0;i<7;i++){
+    var d=new Date(monday); d.setDate(monday.getDate()+i);
+    var iso=localDateStr(d);
+    var hit=!!set[iso]; if(hit) weekCalls++;
+    var cell=el('div','week-day',names[i]);
+    var b=el('b',hit?'hit':''); if(iso===localDateStr(today)) b.classList.add('today');
+    b.textContent=d.getDate();
+    cell.appendChild(b);
+    strip.appendChild(cell);
+  }
+  q('#weekSummary').textContent=weekCalls===0?'No calls logged this week yet — the week is young.':weekCalls+' call'+(weekCalls===1?'':'s')+' logged this week.';
+  var st=callStreak();
+  q('#streakLine').textContent=st>0?('Call streak: '+st+' day'+(st===1?'':'s')+' in a row. Keep it going.'):'No streak yet — log a call today to start one.';
+  var list=q('#callList'); list.innerHTML='';
+  var entries=[];
+  state.people.forEach(function(p){ (p.calls||[]).forEach(function(d){ entries.push({d:d,name:p.name,place:p.place}); }); });
+  entries.sort(function(a,b){ return b.d<a.d?-1:1; });
+  entries.slice(0,8).forEach(function(e){
+    var li=el('li');
+    li.innerHTML='<span><b>'+esc(e.name)+'</b> <span class="muted">· '+esc(e.place)+'</span></span><span class="when">'+prettyDate(e.d)+'</span>';
+    list.appendChild(li);
+  });
+  if(!entries.length) list.innerHTML='<li>No calls logged yet.</li>';
+}
+
+/* ---------- meeting planner ---------- */
+function renderPlanner(){
+  var dateVal=q('#planDate').value, timeVal=q('#planTime').value;
+  var table=q('#planTable');
+  if(!dateVal||!timeVal){ table.innerHTML=''; q('#planSummary').textContent='Pick a date and time to see it in every time zone.'; return; }
+  var a=dateVal.split('-'), t=timeVal.split(':');
+  var utc=zonedToUtc2(HOME_TZ,parseInt(a[0],10),parseInt(a[1],10),parseInt(a[2],10),parseInt(t[0],10),parseInt(t[1],10));
+  var note=(q('#planNote').value||'').trim();
+  q('#planSummary').textContent=(note?note+' — ':'')+fromMin(toMin(timeVal))+' in Bengaluru on '+prettyDate(dateVal)+'.';
+  var rows='<thead><tr><th>Place</th><th>Local time</th><th>Day</th></tr></thead><tbody>';
+  state.places.forEach(function(tz){
+    var pl=placeById(tz);
+    var p=partsInZone(tz,utc);
+    var h12=p.h%12; if(h12===0) h12=12;
+    var homeP=partsInZone(HOME_TZ,utc);
+    var dayDiff=(p.y*372+p.mo*31+p.d)-(homeP.y*372+homeP.mo*31+homeP.d);
+    var dayTag=dayDiff===0?'Same day':(dayDiff>0?'Next day':'Previous day');
+    var awake=(p.h>=7&&p.h<23)?' · awake hours':' · night hours';
+    rows+='<tr'+(tz===HOME_TZ?' class="home-row"':'')+'><td><b>'+esc(pl.short)+'</b>'+(tz===HOME_TZ?' (you)':'')+'</td><td><b>'+h12+':'+String(p.mi).padStart(2,'0')+' '+(p.h>=12?'PM':'AM')+'</b></td><td><span class="daytag">'+dayTag+awake+'</span></td></tr>';
+  });
+  rows+='</tbody>';
+  table.innerHTML=rows;
+}
+function copyPlan(){
+  var dateVal=q('#planDate').value, timeVal=q('#planTime').value;
+  if(!dateVal||!timeVal){ toast('Pick a date and time first.'); return; }
+  var a=dateVal.split('-'), t=timeVal.split(':');
+  var utc=zonedToUtc2(HOME_TZ,parseInt(a[0],10),parseInt(a[1],10),parseInt(a[2],10),parseInt(t[0],10),parseInt(t[1],10));
+  var note=(q('#planNote').value||'Call').trim();
+  var lines=[note+' — '+fromMin(toMin(timeVal))+' IST, '+prettyDate(dateVal)+' (Bengaluru time):'];
+  state.places.forEach(function(tz){
+    var pl=placeById(tz); var p=partsInZone(tz,utc);
+    var h12=p.h%12; if(h12===0) h12=12;
+    lines.push('• '+pl.short+': '+h12+':'+String(p.mi).padStart(2,'0')+' '+(p.h>=12?'PM':'AM')+' ('+dayLabel(tz,utc)+')');
+  });
+  copyText(lines.join('\n'),'Call plan copied — paste it into the family group.');
+}
+function copyText(text,msg){
+  function done(){ toast(msg); }
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,function(){ fallbackCopy(text); done(); }); }
+  else { fallbackCopy(text); done(); }
+}
+function fallbackCopy(text){
+  var ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta);
+}
+function copyWeek(){
+  var st=callStreak();
+  var entries=[];
+  state.people.forEach(function(p){ (p.calls||[]).forEach(function(d){ entries.push({d:d,name:p.name}); }); });
+  entries.sort(function(a,b){ return b.d<a.d?-1:1; });
+  var lines=['My calls this week ('+entries.length+' logged, '+st+'-day streak):'];
+  entries.slice(0,10).forEach(function(e){ lines.push('• '+e.name+' — '+prettyDate(e.d)); });
+  copyText(lines.join('\n'),'This week copied.');
+}
+
+/* ---------- guides ---------- */
+var GUIDES=[
+ {t:'How time zones actually work',d:'The world is split into 24 slices. India sits at UTC+5:30 — five and a half hours ahead of London in winter. That half hour is why the maths feels odd: add 5 hours 30 minutes to London, take away 4 hours 30 minutes from Rome.'},
+ {t:'Daylight saving moves their clocks, not ours',d:'Europe and North America shift their clocks by an hour in spring and autumn. India never does. So Italy is 4\u00BD hours behind us in winter but only 3\u00BD in summer — if a call suddenly feels an hour off, this is why.'},
+ {t:'The golden window',d:'For India and Europe, the sweet spot is our evening: 7 PM here is 2:30 PM in Italy in winter. For the US and Canada, try our mornings — 9 AM here is 10:30 PM the night before in Toronto.'},
+ {t:'When not to call',d:'2 AM to 6 AM their time is sacred. If the wheel shows no gold at all, nobody is awake at the same time — leave a voice note instead of ringing, and let them reply when they wake.'},
+ {t:'Cheapest ways to call abroad',d:'Wi-Fi calling on WhatsApp, FaceTime or Telegram costs nothing extra on home Wi-Fi. If you must use mobile data, a video call uses roughly 5 MB a minute — about 300 MB for an hour.'},
+ {t:'Birthdays flip at midnight',d:'A birthday in Toronto starts 10\u00BD hours after it starts here. Wish them when their day begins, not ours — or your midnight message lands while they are still a day younger.'}
+];
+function renderGuides(){
+  var g=q('#guidesGrid'); g.innerHTML='';
+  GUIDES.forEach(function(x){
+    var card=el('div','card guide');
+    card.appendChild(el('h3',null,esc(x.t)));
+    card.appendChild(el('p',null,esc(x.d)));
+    g.appendChild(card);
+  });
+}
+
+/* ---------- sheets (add person / add place) ---------- */
+function fillTzSelects(){
+  var opts=PLACES.map(function(p){ return '<option value="'+p.id+'">'+esc(p.label)+'</option>'; }).join('');
+  q('#npTz').innerHTML=opts;
+  var avail=PLACES.filter(function(p){ return state.places.indexOf(p.id)===-1; });
+  q('#apTz').innerHTML=avail.map(function(p){ return '<option value="'+p.id+'">'+esc(p.label)+'</option>'; }).join('')||'<option value="">All places already on your wall</option>';
+}
+function openSheet(which){
+  fillTzSelects();
+  q('#sheetPerson').hidden=which!=='person';
+  q('#sheetPlace').hidden=which!=='place';
+  q('#sheetTitle').textContent=which==='person'?'Add a person':'Add a place';
+  var s=q('#sheet'); s.hidden=false; s.style.display='flex';
+}
+function closeSheet(){ var s=q('#sheet'); s.hidden=true; s.style.display='none'; }
+function openPersonSheet(){ openSheet('person'); }
+function openPlaceSheet(){ openSheet('place'); }
+function savePerson(){
+  var name=q('#npName').value.trim();
+  var place=q('#npPlace').value.trim()||placeById(q('#npTz').value).short;
+  var tz=q('#npTz').value;
+  if(!name){ toast('Give the person a name first.'); q('#npName').focus(); return; }
+  var p={id:'p-'+Date.now(),name:name,place:place,tz:tz,wake:toMin(q('#npWake').value||'07:00'),sleep:toMin(q('#npSleep').value||'22:30'),lastCalled:null,calls:[],sample:false,color:state.people.length%4};
+  state.people.push(p);
+  if(state.places.indexOf(tz)===-1) state.places.push(tz);
+  save(); closeSheet(); renderAll();
+  toast(name+' added — their clock is on the wall now.');
+}
+function savePlace(){
+  var tz=q('#apTz').value;
+  if(!tz){ toast('That place is already on your wall.'); return; }
+  if(state.places.indexOf(tz)===-1) state.places.push(tz);
+  save(); closeSheet(); renderAll();
+  toast(placeById(tz).short+' added to your wall.');
+}
+
+/* ---------- render all / init ---------- */
+function renderAll(){
+  renderWall();
+  renderFinder();
+  renderPeople();
+  renderLog();
+  renderPlanner();
+  updateNowCard();
+}
+function endIntro(){
+  var intro=q('#intro'); if(!intro) return;
+  intro.classList.add('done');
+  state.seen=true; save();
+  setTimeout(function(){ if(intro.parentNode) intro.parentNode.removeChild(intro); },700);
+}
+var TOUR=[
+ {t:'Your wall of clocks',x:'Home is Bengaluru. Every other card is a place your people live — green means they are awake, grey means asleep.'},
+ {t:'The day wheel',x:'Pick two people and the wheel shows when you are both awake. The gold arc is your shared window — in your time and theirs.'},
+ {t:'Log the call',x:'Tap “Mark called” after you ring someone. Your streak grows day by day, and the week strip shows the habit forming.'}
+];
+var tourStep=0;
+function showTour(step){
+  tourStep=step||0;
+  var t=q('#tour');
+  q('#tourTitle').textContent=TOUR[tourStep].t;
+  q('#tourText').textContent=TOUR[tourStep].x;
+  q('#tourSteps').textContent='Step '+(tourStep+1)+' of '+TOUR.length;
+  q('#tourNext').textContent=tourStep===TOUR.length-1?'Done':'Next';
+  t.classList.add('show');
+  var anchors=[q('#wall'),q('#finder'),q('#log')];
+  var a=anchors[tourStep];
+  if(a){ safeScroll(a); }
+  var r=a?a.getBoundingClientRect():{top:80,left:20};
+  t.style.top=Math.min(window.innerHeight-190,Math.max(70,r.top+8))+'px';
+  t.style.left=Math.max(12,Math.min(window.innerWidth-320,r.left+12))+'px';
+}
+function hideTour(){ q('#tour').classList.remove('show'); }
+
+function init(){
+  renderGuides();
+  renderAll();
+  /* defaults for planner: today, 7 PM */
+  var today=new Date();
+  q('#planDate').value=localDateStr(today);
+  q('#planTime').value='19:00';
+  renderPlanner();
+  /* intro: full on first visit, quick on return */
+  var intro=q('#intro');
+  if(state.seen){ intro.style.display='none'; }
+  else{
+    setTimeout(endIntro,3600);
+    q('#skipIntro').addEventListener('click',endIntro);
+    intro.addEventListener('click',function(e){ if(e.target===intro) endIntro(); });
+    setTimeout(function(){ if(!state.seen) showTour(0); },4200);
+  }
+  /* events */
+  q('#pickA').addEventListener('change',finderChanged);
+  q('#pickB').addEventListener('change',finderChanged);
+  ['wakeA','sleepA','wakeB','sleepB'].forEach(function(id){ q('#'+id).addEventListener('change',wakeChanged); });
+  q('#addPlaceBtn').addEventListener('click',openPlaceSheet);
+  q('#addPersonBtn').addEventListener('click',openPersonSheet);
+  q('#sheetClose').addEventListener('click',closeSheet);
+  q('#sheet').addEventListener('click',function(e){ if(e.target===q('#sheet')) closeSheet(); });
+  q('#npSave').addEventListener('click',savePerson);
+  q('#apSave').addEventListener('click',savePlace);
+  q('#planDate').addEventListener('change',renderPlanner);
+  q('#planTime').addEventListener('change',renderPlanner);
+  q('#planNote').addEventListener('input',renderPlanner);
+  q('#copyPlanBtn').addEventListener('click',copyPlan);
+  q('#copyWeekBtn').addEventListener('click',copyWeek);
+  q('#nowCallBtn').addEventListener('click',function(){
+    var id=q('#nowCallBtn').dataset.person; if(id) markCalled(id);
+  });
+  q('#removeSamplesBtn').addEventListener('click',function(){
+    var before=state.people.length;
+    state.people=state.people.filter(function(p){ return !p.sample; });
+    save(); renderAll();
+    toast(before-state.people.length?('Removed the sample people.'):'No samples left to remove.');
+  });
+  q('#eraseBtn').addEventListener('click',function(){
+    if(!window.confirm('Erase everything — all people, places and call logs?')) return;
+    try{ localStorage.removeItem(LS_KEY); }catch(e){}
+    state=defaultState(); save(); renderAll();
+    toast('Fresh start — samples are back.');
+  });
+  q('#tourNext').addEventListener('click',function(){
+    if(tourStep>=TOUR.length-1) hideTour(); else showTour(tourStep+1);
+  });
+  q('#tourSkip').addEventListener('click',hideTour);
+  /* tickers: clocks every second, cards every 30s */
+  setInterval(updateClocks,1000);
+  setInterval(updateNowCard,1000);
+  setInterval(function(){ renderPeople(); renderFinder(); },30000);
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+else init();
+
+window.CallHome={
+  state:state, PLACES:PLACES, samplePeople:samplePeople,
+  tzOffsetMin:tzOffsetMin, zonedToUtc:zonedToUtc2, partsInZone:partsInZone,
+  localMinutes:localMinutes, isAwakeAt:isAwakeAt, overlapWindows:overlapWindows,
+  fromMin:fromMin, fromMin24:fromMin24, toMin:toMin, fmtOffset:fmtOffset,
+  bestWindowToday:bestWindowToday, callStreak:callStreak, markCalled:markCalled,
+  renderAll:renderAll, endIntro:endIntro, showTour:showTour
+};
+})();
+</script>
+</body>
+</html>
