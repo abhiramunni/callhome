@@ -1,0 +1,67 @@
+<!-- @@NEXT@@ -->
+<div id="intro" role="dialog" aria-label="Welcome to CallHome">
+  <button id="skipIntro" type="button">Skip intro</button>
+  <div class="glyph" aria-hidden="true">
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#d9a441" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+  </div>
+  <h1><span class="st">CALLHOME</span><span class="st">Never ring at the wrong hour.</span><span class="st">Live clocks and best-time windows for the people you love, across every time zone.</span></h1>
+  <div class="bar" aria-hidden="true"><i></i></div>
+</div>
+
+<header class="mast">
+  <div class="wrap mast-in">
+    <a class="logo" href="#top">
+      <span class="mark" aria-hidden="true">C</span>
+      <span><b>CallHome</b><small>World clock &amp; call planner</small></span>
+    </a>
+    <nav aria-label="Sections">
+      <a href="#wall">Clocks</a>
+      <a href="#finder">Best time</a>
+      <a href="#people">People</a>
+      <a href="#planner">Plan a call</a>
+      <a href="#guides">Guides</a>
+    </nav>
+    <div class="mast-clock" aria-label="Current time in Bengaluru">
+      <b id="mastClock">--:--</b>
+      <span>Bengaluru · IST · <span id="mastDate">—</span></span>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <img class="bg" src="{{HERO_IMG}}" alt="A young man smiling on a video call with his family at golden hour" onerror="this.style.display='none'">
+  <div class="shade" aria-hidden="true"></div>
+  <div class="hero-in">
+    <span class="kicker" style="color:#e8c98a">World clock &middot; Best time to call &middot; Call plans</span>
+    <h1>Never ring at <em>the wrong hour.</em></h1>
+    <p class="lede">Your people live in different time zones. CallHome keeps their clocks on your wall, works out the hours when you are both awake, and tells you — in plain words — the best time to call.</p>
+    <div class="hero-cta">
+      <a class="btn terra" href="#finder">Find the best time to call</a>
+      <a class="btn ghost" href="#wall">See all clocks</a>
+    </div>
+    <div class="hero-stats">
+      <div><b id="statPeople">4</b><span>people saved</span></div>
+      <div><b id="statAwake">—</b><span>awake right now</span></div>
+      <div><b id="statStreak">—</b><span>day call streak</span></div>
+      <div><b>14</b><span>time zones to add</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <section class="card now-card" aria-label="Best person to call right now">
+    <div class="who">
+      <div class="avatar terra" id="nowAvatar" aria-hidden="true">D</div>
+      <div>
+        <span class="kicker">Best to call right now</span>
+        <h3 id="nowName">—</h3>
+        <p class="verdict" id="nowVerdict">Checking clocks…</p>
+      </div>
+    </div>
+    <div class="now-meta">
+      <div class="cd" id="nowCountdown">--:--:--</div>
+      <div class="lbl" id="nowCountdownLabel">until the next good window opens</div>
+      <div style="margin-top:12px"><button class="btn sm terra" type="button" id="nowCallBtn">Mark as called</button></div>
+    </div>
+  </section>
