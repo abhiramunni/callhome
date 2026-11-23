@@ -1,0 +1,25 @@
+
+<div id="sheet" hidden style="position:fixed;inset:0;z-index:150;align-items:flex-end;justify-content:center;background:rgba(29,19,11,.55)" role="dialog" aria-modal="true" aria-label="Add">
+  <div class="card" style="width:min(520px,94vw);margin:0 0 20px;padding:24px;max-height:86vh;overflow:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <h3 id="sheetTitle" style="margin:0;font-size:22px">Add a person</h3>
+      <button type="button" id="sheetClose" aria-label="Close" style="border:0;background:transparent;font-size:22px;line-height:1;color:var(--mut)">&times;</button>
+    </div>
+    <div id="sheetPerson">
+      <div class="field" style="margin:14px 0 12px"><label for="npName">Name</label><input type="text" id="npName" placeholder="e.g. Devika" maxlength="40"></div>
+      <div class="field" style="margin-bottom:12px"><label for="npPlace">City and country</label><input type="text" id="npPlace" placeholder="e.g. Casoria, Italy" maxlength="60"></div>
+      <div class="field" style="margin-bottom:12px"><label for="npTz">Their time zone</label><select id="npTz"></select></div>
+      <div class="wake-row">
+        <div class="field"><label for="npWake">Usually awake from</label><input type="time" id="npWake" value="07:00"></div>
+        <div class="field"><label for="npSleep">Usually asleep from</label><input type="time" id="npSleep" value="22:30"></div>
+      </div>
+      <p class="small muted">Awake hours are a guess — edit them on the person's card any time.</p>
+      <button class="btn terra" type="button" id="npSave" style="width:100%;justify-content:center">Add person</button>
+    </div>
+    <div id="sheetPlace" hidden>
+      <div class="field" style="margin:14px 0 12px"><label for="apTz">Place to add</label><select id="apTz"></select></div>
+      <p class="small muted">Adds a clock to your wall and a row to the meeting planner.</p>
+      <button class="btn terra" type="button" id="apSave" style="width:100%;justify-content:center">Add to wall</button>
+    </div>
+  </div>
+</div>
