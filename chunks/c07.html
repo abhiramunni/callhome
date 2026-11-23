@@ -1,0 +1,80 @@
+
+
+  <section class="sec" id="log" aria-label="Call log">
+    <div class="sec-head">
+      <div>
+        <span class="kicker">Call log</span>
+        <h2>Small calls, kept up.</h2>
+        <p>Your week at a glance. A filled dot is a day you rang someone. The streak counts back from today — it only grows if you keep calling.</p>
+      </div>
+      <button class="btn ghost sm" type="button" id="copyWeekBtn">Copy this week</button>
+    </div>
+    <div class="log-grid">
+      <div class="card">
+        <h3 style="margin:0">This week</h3>
+        <div class="week-strip" id="weekStrip"></div>
+        <p class="small muted" id="weekSummary">—</p>
+        <p style="margin:14px 0 0;font-size:15px"><b id="streakLine">—</b></p>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 6px">Recent calls</h3>
+        <ul class="call-list" id="callList"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-label="A quiet reminder">
+    <img src="{{FLATLAY_IMG}}" alt="A phone showing world clocks, a small globe, a passport and filter coffee on a linen cloth" loading="lazy" onerror="this.style.display='none'">
+    <div class="shade" aria-hidden="true"></div>
+    <div class="band-in">
+      <span class="kicker" style="color:#e8c98a">The habit that matters</span>
+      <h2>Five minutes, once a week, keeps home close.</h2>
+      <p>Pick one fixed slot — Sunday evening works for most families — and let the wheel find the hour that suits everyone.</p>
+      <a class="btn" href="#planner">Plan Sunday's call</a>
+    </div>
+  </section>
+
+  <section class="sec" id="guides" aria-label="Plain-language guides">
+    <div class="sec-head">
+      <div>
+        <span class="kicker">Plain-language guides</span>
+        <h2>Time zones, without the headache.</h2>
+      </div>
+    </div>
+    <div class="guides" id="guidesGrid"></div>
+  </section>
+
+  <section class="sec" aria-label="Settings">
+    <div class="card settings">
+      <div>
+        <h3 style="margin:0 0 4px">Your data stays on this device.</h3>
+        <p class="small muted" style="margin:0">No account, no sign-up, nothing leaves your phone or laptop. Samples are only examples — remove them when you add your own people.</p>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn ghost sm" type="button" id="removeSamplesBtn">Remove samples</button>
+        <button class="btn ghost sm" type="button" id="eraseBtn">Erase everything</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <span>CallHome — built for families spread across time zones. All times are computed on your device from the official IANA time-zone database in your browser.</span>
+    <span>Home time zone: Asia/Kolkata (IST, UTC+5:30, no daylight saving).</span>
+  </div>
+</footer>
+
+<div id="tour" role="dialog" aria-label="Quick tour">
+  <h3 id="tourTitle"></h3>
+  <p id="tourText"></p>
+  <div class="row">
+    <span class="steps" id="tourSteps"></span>
+    <span>
+      <button class="btn ghost sm" type="button" id="tourSkip" style="color:#faf3e7;border-color:rgba(250,243,231,.4)">Skip</button>
+      <button class="btn sm" type="button" id="tourNext" style="background:#d9a441;border-color:#d9a441;color:#2b1d12">Next</button>
+    </span>
+  </div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<noscript><div class="wrap"><p class="noscript">CallHome needs JavaScript to work out the clocks — please enable it and reload.</p></div></noscript>
