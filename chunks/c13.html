@@ -1,0 +1,114 @@
+
+
+/* ---------- meeting planner ---------- */
+function renderPlanner(){
+  var dateVal=q('#planDate').value, timeVal=q('#planTime').value;
+  var table=q('#planTable');
+  if(!dateVal||!timeVal){ table.innerHTML=''; q('#planSummary').textContent='Pick a date and time to see it in every time zone.'; return; }
+  var a=dateVal.split('-'), t=timeVal.split(':');
+  var utc=zonedToUtc2(HOME_TZ,parseInt(a[0],10),parseInt(a[1],10),parseInt(a[2],10),parseInt(t[0],10),parseInt(t[1],10));
+  var note=(q('#planNote').value||'').trim();
+  q('#planSummary').textContent=(note?note+' — ':'')+fromMin(toMin(timeVal))+' in Bengaluru on '+prettyDate(dateVal)+'.';
+  var rows='<thead><tr><th>Place</th><th>Local time</th><th>Day</th></tr></thead><tbody>';
+  state.places.forEach(function(tz){
+    var pl=placeById(tz);
+    var p=partsInZone(tz,utc);
+    var h12=p.h%12; if(h12===0) h12=12;
+    var homeP=partsInZone(HOME_TZ,utc);
+    var dayDiff=(p.y*372+p.mo*31+p.d)-(homeP.y*372+homeP.mo*31+homeP.d);
+    var dayTag=dayDiff===0?'Same day':(dayDiff>0?'Next day':'Previous day');
+    var awake=(p.h>=7&&p.h<23)?' · awake hours':' · night hours';
+    rows+='<tr'+(tz===HOME_TZ?' class="home-row"':'')+'><td><b>'+esc(pl.short)+'</b>'+(tz===HOME_TZ?' (you)':'')+'</td><td><b>'+h12+':'+String(p.mi).padStart(2,'0')+' '+(p.h>=12?'PM':'AM')+'</b></td><td><span class="daytag">'+dayTag+awake+'</span></td></tr>';
+  });
+  rows+='</tbody>';
+  table.innerHTML=rows;
+}
+function copyPlan(){
+  var dateVal=q('#planDate').value, timeVal=q('#planTime').value;
+  if(!dateVal||!timeVal){ toast('Pick a date and time first.'); return; }
+  var a=dateVal.split('-'), t=timeVal.split(':');
+  var utc=zonedToUtc2(HOME_TZ,parseInt(a[0],10),parseInt(a[1],10),parseInt(a[2],10),parseInt(t[0],10),parseInt(t[1],10));
+  var note=(q('#planNote').value||'Call').trim();
+  var lines=[note+' — '+fromMin(toMin(timeVal))+' IST, '+prettyDate(dateVal)+' (Bengaluru time):'];
+  state.places.forEach(function(tz){
+    var pl=placeById(tz); var p=partsInZone(tz,utc);
+    var h12=p.h%12; if(h12===0) h12=12;
+    lines.push('• '+pl.short+': '+h12+':'+String(p.mi).padStart(2,'0')+' '+(p.h>=12?'PM':'AM')+' ('+dayLabel(tz,utc)+')');
+  });
+  copyText(lines.join('\n'),'Call plan copied — paste it into the family group.');
+}
+function copyText(text,msg){
+  function done(){ toast(msg); }
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,function(){ fallbackCopy(text); done(); }); }
+  else { fallbackCopy(text); done(); }
+}
+function fallbackCopy(text){
+  var ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta);
+}
+function copyWeek(){
+  var st=callStreak();
+  var entries=[];
+  state.people.forEach(function(p){ (p.calls||[]).forEach(function(d){ entries.push({d:d,name:p.name}); }); });
+  entries.sort(function(a,b){ return b.d<a.d?-1:1; });
+  var lines=['My calls this week ('+entries.length+' logged, '+st+'-day streak):'];
+  entries.slice(0,10).forEach(function(e){ lines.push('• '+e.name+' — '+prettyDate(e.d)); });
+  copyText(lines.join('\n'),'This week copied.');
+}
+
+/* ---------- guides ---------- */
+var GUIDES=[
+ {t:'How time zones actually work',d:'The world is split into 24 slices. India sits at UTC+5:30 — five and a half hours ahead of London in winter. That half hour is why the maths feels odd: add 5 hours 30 minutes to London, take away 4 hours 30 minutes from Rome.'},
+ {t:'Daylight saving moves their clocks, not ours',d:'Europe and North America shift their clocks by an hour in spring and autumn. India never does. So Italy is 4½ hours behind us in winter but only 3½ in summer — if a call suddenly feels an hour off, this is why.'},
+ {t:'The golden window',d:'For India and Europe, the sweet spot is our evening: 7 PM here is 2:30 PM in Italy in winter. For the US and Canada, try our mornings — 9 AM here is 10:30 PM the night before in Toronto.'},
+ {t:'When not to call',d:'2 AM to 6 AM their time is sacred. If the wheel shows no gold at all, nobody is awake at the same time — leave a voice note instead of ringing, and let them reply when they wake.'},
+ {t:'Cheapest ways to call abroad',d:'Wi-Fi calling on WhatsApp, FaceTime or Telegram costs nothing extra on home Wi-Fi. If you must use mobile data, a video call uses roughly 5 MB a minute — about 300 MB for an hour.'},
+ {t:'Birthdays flip at midnight',d:'A birthday in Toronto starts 10½ hours after it starts here. Wish them when their day begins, not ours — or your midnight message lands while they are still a day younger.'}
+];
+function renderGuides(){
+  var g=q('#guidesGrid'); g.innerHTML='';
+  GUIDES.forEach(function(x){
+    var card=el('div','card guide');
+    card.appendChild(el('h3',null,esc(x.t)));
+    card.appendChild(el('p',null,esc(x.d)));
+    g.appendChild(card);
+  });
+}
+
+/* ---------- sheets (add person / add place) ---------- */
+function fillTzSelects(){
+  var opts=PLACES.map(function(p){ return '<option value="'+p.id+'">'+esc(p.label)+'</option>'; }).join('');
+  q('#npTz').innerHTML=opts;
+  var avail=PLACES.filter(function(p){ return state.places.indexOf(p.id)===-1; });
+  q('#apTz').innerHTML=avail.map(function(p){ return '<option value="'+p.id+'">'+esc(p.label)+'</option>'; }).join('')||'<option value="">All places already on your wall</option>';
+}
+function openSheet(which){
+  fillTzSelects();
+  q('#sheetPerson').hidden=which!=='person';
+  q('#sheetPlace').hidden=which!=='place';
+  q('#sheetTitle').textContent=which==='person'?'Add a person':'Add a place';
+  var s=q('#sheet'); s.hidden=false; s.style.display='flex';
+}
+function closeSheet(){ var s=q('#sheet'); s.hidden=true; s.style.display='none'; }
+function openPersonSheet(){ openSheet('person'); }
+function openPlaceSheet(){ openSheet('place'); }
+function savePerson(){
+  var name=q('#npName').value.trim();
+  var place=q('#npPlace').value.trim()||placeById(q('#npTz').value).short;
+  var tz=q('#npTz').value;
+  if(!name){ toast('Give the person a name first.'); q('#npName').focus(); return; }
+  var p={id:'p-'+Date.now(),name:name,place:place,tz:tz,wake:toMin(q('#npWake').value||'07:00'),sleep:toMin(q('#npSleep').value||'22:30'),lastCalled:null,calls:[],sample:false,color:state.people.length%4};
+  state.people.push(p);
+  if(state.places.indexOf(tz)===-1) state.places.push(tz);
+  save(); closeSheet(); renderAll();
+  toast(name+' added — their clock is on the wall now.');
+}
+function savePlace(){
+  var tz=q('#apTz').value;
+  if(!tz){ toast('That place is already on your wall.'); return; }
+  if(state.places.indexOf(tz)===-1) state.places.push(tz);
+  save(); closeSheet(); renderAll();
+  toast(placeById(tz).short+' added to your wall.');
+}
