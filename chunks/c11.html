@@ -1,0 +1,93 @@
+
+/* ---------- day wheel ---------- */
+function polar(cx,cy,r,deg){ var rad=(deg-90)*Math.PI/180; return [cx+r*Math.cos(rad),cy+r*Math.sin(rad)]; }
+function arcPath(cx,cy,r,a0,a1){
+  var s=polar(cx,cy,r,a0), e=polar(cx,cy,r,a1);
+  var large=(a1-a0)>180?1:0;
+  return 'M '+s[0].toFixed(1)+' '+s[1].toFixed(1)+' A '+r+' '+r+' 0 '+large+' 1 '+e[0].toFixed(1)+' '+e[1].toFixed(1);
+}
+function renderWheel(){
+  var svg=q('#dayWheel'); if(!svg) return;
+  var A=finderPerson(state.finderA), B=finderPerson(state.finderB);
+  if(!A||!B){ svg.innerHTML=''; return; }
+  var now=new Date();
+  var cx=150, cy=150, r=104;
+  var s='';
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#e6d9c2" stroke-width="16"/>';
+  /* hour ticks + labels */
+  for(var h=0;h<24;h++){
+    var a=h*15, p1=polar(cx,cy,r-14,a), p2=polar(cx,cy,r-20,a);
+    s+='<line x1="'+p1[0].toFixed(1)+'" y1="'+p1[1].toFixed(1)+'" x2="'+p2[0].toFixed(1)+'" y2="'+p2[1].toFixed(1)+'" stroke="#8a7360" stroke-width="1"/>';
+    if(h%3===0){
+      var lp=polar(cx,cy,r-32,a);
+      var h12=h%12; if(h12===0) h12=12;
+      s+='<text x="'+lp[0].toFixed(1)+'" y="'+(lp[1]+4).toFixed(1)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#8a7360">'+h12+(h<12?'a':'p')+'</text>';
+    }
+  }
+  /* per-15-min state arcs */
+  for(var i=0;i<96;i++){
+    var t=new Date(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate(),0,0,0)-tzOffsetMin(HOME_TZ,now)*60000+i*15*60000);
+    var aAw=isAwakeAt(A.tz,A.wake,A.sleep,t), bAw=isAwakeAt(B.tz,B.wake,B.sleep,t);
+    var col=null;
+    if(aAw&&bAw) col='#d9a441'; else if(aAw) col='#e3cfa5'; else if(bAw) col='#e8b49a';
+    if(!col) continue;
+    var a0=i*3.75, a1=(i+1)*3.75;
+    s+='<path d="'+arcPath(cx,cy,r,a0+0.3,a1-0.3)+'" fill="none" stroke="'+col+'" stroke-width="16"/>';
+  }
+  /* now marker */
+  var homeMin=localMinutes(HOME_TZ,now);
+  var np=polar(cx,cy,r,homeMin/4);
+  s+='<circle cx="'+np[0].toFixed(1)+'" cy="'+np[1].toFixed(1)+'" r="6.5" fill="#2b1d12" stroke="#faf3e7" stroke-width="2"/>';
+  s+='<text x="'+cx+'" y="'+(cy-8)+'" text-anchor="middle" font-size="12" font-weight="700" fill="#8a7360">HOME TIME (IST)</text>';
+  s+='<text x="'+cx+'" y="'+(cy+12)+'" text-anchor="middle" font-size="21" font-weight="800" fill="#2b1d12" font-family="Fraunces,serif">'+esc(A.name)+' + '+esc(B.name)+'</text>';
+  s+='<text x="'+cx+'" y="'+(cy+32)+'" text-anchor="middle" font-size="12" fill="#5c4632">black dot = now</text>';
+  svg.innerHTML=s;
+}
+function renderFinder(){
+  var selA=q('#pickA'), selB=q('#pickB');
+  var opts='<option value="home">You (home) — Bengaluru</option>';
+  state.people.forEach(function(p){ opts+='<option value="'+p.id+'">'+esc(p.name)+' — '+esc(p.place)+'</option>'; });
+  selA.innerHTML=opts; selB.innerHTML=opts;
+  selA.value=state.finderA; selB.value=state.finderB;
+  var A=finderPerson(state.finderA), B=finderPerson(state.finderB);
+  if(!A||!B) return;
+  q('#wakeA').value=fromMin24(A.wake); q('#sleepA').value=fromMin24(A.sleep);
+  q('#wakeB').value=fromMin24(B.wake); q('#sleepB').value=fromMin24(B.sleep);
+  var wins=overlapWindows(A.tz,A.wake,A.sleep,B.tz,B.wake,B.sleep,new Date());
+  var total=wins.reduce(function(acc,w){ return acc+((w.end-w.start+1440)%1440|| (w.end-w.start)); },0);
+  var v=q('#finderVerdict');
+  if(state.finderA===state.finderB){
+    v.textContent='Pick two different people to compare their hours.';
+  }else if(!wins.length){
+    v.textContent='No shared awake hours today — '+A.name+' and '+B.name+' are on opposite schedules. Try shifting one person\u2019s awake hours, or plan a short call at the edge of their day.';
+  }else{
+    var first=wins[0];
+    var aStart=((first.start+tzOffsetMin(A.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+    var aEnd=((first.end+tzOffsetMin(A.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+    v.textContent='Best time to call: '+fromMin(first.start)+' – '+fromMin(first.end)+' your time ('+fromMin(aStart)+' – '+fromMin(aEnd)+' for '+A.name+'). That is '+Math.round(total/60*10)/10+' shared hours today.';
+  }
+  var list=q('#winList'); list.innerHTML='';
+  wins.forEach(function(w){
+    var aS=((w.start+tzOffsetMin(A.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+    var aE=((w.end+tzOffsetMin(A.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+    var bS=((w.start+tzOffsetMin(B.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+    var bE=((w.end+tzOffsetMin(B.tz,new Date())-tzOffsetMin(HOME_TZ,new Date()))%1440+1440)%1440;
+    var li=el('li');
+    li.innerHTML='<b>'+fromMin(w.start)+' – '+fromMin(w.end)+' IST</b><span>'+esc(A.name)+' '+fromMin(aS)+' – '+fromMin(aE)+' · '+esc(B.name)+' '+fromMin(bS)+' – '+fromMin(bE)+'</span>';
+    list.appendChild(li);
+  });
+  renderWheel();
+}
+function finderChanged(){
+  state.finderA=q('#pickA').value; state.finderB=q('#pickB').value;
+  var A=finderPerson(state.finderA), B=finderPerson(state.finderB);
+  if(A){ q('#wakeA').value=fromMin24(A.wake); q('#sleepA').value=fromMin24(A.sleep); }
+  if(B){ q('#wakeB').value=fromMin24(B.wake); q('#sleepB').value=fromMin24(B.sleep); }
+  save(); renderFinder();
+}
+function wakeChanged(){
+  var A=finderPerson(state.finderA), B=finderPerson(state.finderB);
+  if(A){ A.wake=toMin(q('#wakeA').value||'07:00'); A.sleep=toMin(q('#sleepA').value||'22:30'); }
+  if(B){ B.wake=toMin(q('#wakeB').value||'07:00'); B.sleep=toMin(q('#sleepB').value||'22:30'); }
+  save(); renderFinder(); renderPeople(); updateNowCard();
+}
