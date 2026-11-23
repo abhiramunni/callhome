@@ -1,0 +1,63 @@
+
+  <section class="sec" id="wall" aria-label="World clocks">
+    <div class="sec-head">
+      <div>
+        <span class="kicker">Your wall</span>
+        <h2>Every clock that matters, at a glance.</h2>
+        <p>Home is Bengaluru, IST. The gold card is home. A green pill means awake, a grey pill means asleep — so you never have to do the maths in your head.</p>
+      </div>
+      <button class="btn ghost sm" type="button" id="addPlaceBtn">+ Add a place</button>
+    </div>
+    <div class="wall" id="clockWall" role="list"></div>
+    <p class="small muted" id="wallNote">Times tick live. Offsets are shown against home (IST, UTC+5:30). Europe and North America move their clocks for daylight saving — India does not — so these gaps shift by an hour in summer.</p>
+  </section>
+
+  <section class="sec" id="finder" aria-label="Best time to call finder">
+    <div class="sec-head">
+      <div>
+        <span class="kicker">Best-time finder</span>
+        <h2>When are you both awake?</h2>
+        <p>Pick two people. The day wheel shows when each of them is awake and where the hours overlap — in plain words, in both of their local times.</p>
+      </div>
+    </div>
+    <div class="finder">
+      <div class="card">
+        <div class="pick-row">
+          <div class="field">
+            <label for="pickA">Person A</label>
+            <select id="pickA"></select>
+          </div>
+          <div class="field">
+            <label for="pickB">Person B</label>
+            <select id="pickB"></select>
+          </div>
+        </div>
+        <div class="wake-row">
+          <div class="field">
+            <label for="wakeA">A is usually awake</label>
+            <input type="time" id="wakeA" value="07:00"> <span class="small muted">to</span>
+            <input type="time" id="sleepA" value="22:30" style="margin-top:6px">
+          </div>
+          <div class="field">
+            <label for="wakeB">B is usually awake</label>
+            <input type="time" id="wakeB" value="07:00"> <span class="small muted">to</span>
+            <input type="time" id="sleepB" value="22:30" style="margin-top:6px">
+          </div>
+        </div>
+        <div class="verdict-box"><p id="finderVerdict">Pick two people to see your shared hours.</p></div>
+        <ul class="win-list" id="winList"></ul>
+        <p class="small muted" style="margin-top:12px">Awake hours are yours to edit — they stay on this device only. The wheel is drawn in home time (IST), so the gold arc is the window on your clock.</p>
+      </div>
+      <div class="card">
+        <div class="wheel-wrap">
+          <svg id="dayWheel" width="300" height="300" viewBox="0 0 300 300" role="img" aria-label="24-hour day wheel showing shared awake hours"></svg>
+          <div class="wheel-legend">
+            <span><i class="sw" style="background:#d9a441"></i>Both awake</span>
+            <span><i class="sw" style="background:#e3cfa5"></i>Only A awake</span>
+            <span><i class="sw" style="background:#e8b49a"></i>Only B awake</span>
+            <span><i class="sw" style="background:#e6d9c2"></i>Both asleep</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
