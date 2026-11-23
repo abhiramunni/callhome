@@ -1,0 +1,72 @@
+/* ---------- planner ---------- */
+.planner-grid{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}
+.planner-grid .card{padding:22px 24px}
+.plan-table{width:100%;border-collapse:collapse;font-size:14.5px}
+.plan-table th{text-align:left;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:8px 10px;border-bottom:2px solid var(--line)}
+.plan-table td{padding:11px 10px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.plan-table tr:last-child td{border-bottom:0}
+.plan-table tr.home-row td{background:var(--gold-soft);font-weight:700}
+.plan-table .daytag{font-size:12px;font-weight:700;color:var(--mut)}
+/* ---------- call log ---------- */
+.log-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.log-grid .card{padding:22px 24px}
+.week-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:14px 0 4px}
+.week-day{text-align:center;font-size:12px;color:var(--mut);font-weight:700}
+.week-day b{display:flex;align-items:center;justify-content:center;width:38px;height:38px;margin:6px auto 0;border-radius:50%;background:var(--paper2);font-size:14px;color:var(--ink2)}
+.week-day b.hit{background:var(--green);color:#fff}
+.week-day b.today{outline:2px solid var(--gold);outline-offset:2px}
+.call-list{margin:0;padding:0;list-style:none}
+.call-list li{display:flex;justify-content:space-between;gap:10px;padding:10px 2px;border-top:1px dashed var(--line2);font-size:14.5px}
+.call-list li:first-child{border-top:0}
+.call-list .when{color:var(--mut);font-size:13px;white-space:nowrap}
+/* ---------- photo band ---------- */
+.band{position:relative;border-radius:24px;overflow:hidden;margin:36px 0 8px;min-height:280px}
+.band img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:kenburns 30s ease-in-out infinite alternate}
+.band .shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(29,19,11,.72) 0%,rgba(29,19,11,.25) 60%,rgba(29,19,11,.05) 100%)}
+.band-in{position:relative;padding:44px 34px;color:#fdf8ee;max-width:520px}
+.band-in h2{font-size:32px;line-height:1.15;margin:6px 0 10px}
+.band-in p{color:#f3e8d3;margin:0 0 18px}
+/* ---------- guides ---------- */
+.guides{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.guide{padding:20px 22px}
+.guide h3{margin:0 0 6px;font-size:19px}
+.guide p{margin:0;color:var(--ink2);font-size:14.5px}
+/* ---------- settings / footer ---------- */
+.settings{padding:22px 24px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+footer.site{margin-top:44px;border-top:1px solid var(--line);padding:26px 0 40px;color:var(--mut);font-size:13.5px}
+footer.site .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+/* ---------- coach / toast ---------- */
+#tour{position:fixed;z-index:120;max-width:300px;background:var(--ink);color:var(--paper);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow-lg);display:none}
+#tour.show{display:block}
+#tour h3{margin:0 0 6px;font-size:18px;color:var(--gold)}
+#tour p{margin:0 0 14px;font-size:14px;color:#efe3cb}
+#tour .row{display:flex;gap:8px;justify-content:space-between;align-items:center}
+#tour .steps{font-size:12.5px;color:#cbb894;font-weight:700}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,80px);z-index:130;background:var(--ink);color:var(--paper);padding:12px 20px;border-radius:999px;font-weight:600;font-size:14px;box-shadow:var(--shadow-lg);opacity:0;transition:all .35s ease;pointer-events:none;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.noscript{padding:20px;background:var(--terra-soft);border:1px solid #e5b79b;border-radius:12px;margin:16px 0}
+@media (max-width:860px){
+  .now-card{grid-template-columns:1fr}
+  .now-meta{text-align:left}
+  .finder,.planner-grid,.log-grid{grid-template-columns:1fr}
+  .mast nav{display:none}
+  .hero-in{padding:56px 20px 140px}
+}
+@media (max-width:520px){
+  .sec-head h2{font-size:25px}
+  .hero-stats{gap:18px}
+  .pick-row,.wake-row{grid-template-columns:1fr}
+  .clock-card{min-width:210px;flex-basis:210px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+}
+@media print{
+  header.mast,.hero,.band,.guides,.settings,footer.site,#tour,#intro,.toast,.now-card .row{display:none!important}
+  body{background:#fff}
+  .wall{overflow:visible;flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
