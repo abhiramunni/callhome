@@ -1,0 +1,68 @@
+/* ---------- right-now card (overlaps hero) ---------- */
+.now-card{margin:-108px auto 0;position:relative;z-index:5;padding:22px 24px;display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:center}
+.now-card .who{display:flex;gap:16px;align-items:center}
+.avatar{width:58px;height:58px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-family:Fraunces,serif;font-weight:800;font-size:22px;color:#fff}
+.avatar.terra{background:var(--terra)}
+.avatar.bronze{background:var(--bronze)}
+.avatar.green{background:var(--green)}
+.avatar.night{background:var(--night)}
+.now-card h3{margin:0 0 3px;font-size:23px}
+.now-card .verdict{margin:0;color:var(--ink2)}
+.now-meta{text-align:right}
+.now-meta .cd{font-family:Fraunces,serif;font-size:30px;font-variant-numeric:tabular-nums;line-height:1.1}
+.now-meta .lbl{font-size:12.5px;color:var(--mut);font-weight:600}
+/* ---------- clock wall ---------- */
+.wall{display:flex;gap:14px;overflow-x:auto;padding:6px 2px 14px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.wall::-webkit-scrollbar{height:8px}
+.wall::-webkit-scrollbar-thumb{background:var(--line2);border-radius:99px}
+.clock-card{min-width:228px;flex:0 0 228px;scroll-snap-align:start;padding:18px;position:relative;overflow:hidden}
+.clock-card.home{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),var(--shadow)}
+.clock-card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.clock-card h3{margin:0;font-size:19px}
+.clock-card .city{font-size:12.5px;color:var(--mut);font-weight:600}
+.analog{width:74px;height:74px;flex:none}
+.clock-card .dig{font-family:Fraunces,serif;font-size:32px;line-height:1;font-variant-numeric:tabular-nums;margin:12px 0 2px}
+.clock-card .dig small{font-size:15px;color:var(--mut);font-family:Inter,sans-serif;font-weight:600}
+.clock-card .date{font-size:13px;color:var(--ink2);font-weight:600}
+.clock-card .foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px}
+.clock-card .off{font-size:12.5px;color:var(--mut);font-weight:600}
+.clock-card .rm{position:absolute;top:10px;right:10px;border:0;background:transparent;color:var(--mut);font-size:16px;line-height:1;padding:4px}
+.clock-card .rm:hover{color:var(--terra-d)}
+.add-clock{min-width:200px;flex:0 0 200px;border:1.5px dashed var(--line2);border-radius:var(--r);background:transparent;padding:18px;text-align:left;color:var(--ink2)}
+.add-clock:hover{border-color:var(--bronze);color:var(--ink)}
+.add-clock b{display:block;font-size:16px;margin:8px 0 4px}
+.add-clock span{font-size:13px}
+/* ---------- finder / day wheel ---------- */
+.finder{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.finder .card{padding:22px 24px}
+.pick-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.field label{display:block;font-size:12.5px;font-weight:700;color:var(--ink2);margin-bottom:6px}
+.field select,.field input[type="time"],.field input[type="date"],.field input[type="text"]{width:100%;padding:11px 12px;border:1.5px solid var(--line2);border-radius:12px;background:var(--card)}
+.field select:focus,.field input:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+.wake-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.wheel-wrap{display:flex;flex-direction:column;align-items:center;padding:6px 0 2px}
+.wheel-wrap svg{max-width:100%;height:auto}
+.wheel-legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:6px;font-size:12.5px;font-weight:600;color:var(--ink2)}
+.sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+.verdict-box{margin-top:14px;padding:14px 16px;border-radius:14px;background:var(--gold-soft);border:1px solid #e8c98a}
+.verdict-box p{margin:0;font-weight:600}
+.win-list{margin:12px 0 0;padding:0;list-style:none}
+.win-list li{display:flex;justify-content:space-between;gap:10px;padding:9px 2px;border-top:1px dashed var(--line2);font-size:14.5px}
+.win-list li b{font-variant-numeric:tabular-nums}
+.win-list li span{color:var(--ink2)}
+/* ---------- people ---------- */
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.person{padding:20px;display:flex;flex-direction:column;gap:12px}
+.person .head{display:flex;gap:12px;align-items:center}
+.person h3{margin:0;font-size:20px}
+.person .place{font-size:13px;color:var(--mut);font-weight:600}
+.person .tzline{font-size:13.5px;color:var(--ink2)}
+.person .tzline b{font-variant-numeric:tabular-nums}
+.person .best{background:var(--paper2);border-radius:12px;padding:10px 12px;font-size:13.5px}
+.person .best b{color:var(--terra-d)}
+.person .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.person .row .btn{flex:1;justify-content:center}
+.streak-chip{font-size:12px;font-weight:800;color:var(--bronze)}
+.wake-edit{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink2);flex-wrap:wrap}
+.wake-edit input{width:96px;padding:7px 9px;border:1.5px solid var(--line2);border-radius:10px;background:var(--card)}
+/* @@NEXT@@ */
