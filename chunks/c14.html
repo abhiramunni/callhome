@@ -1,0 +1,97 @@
+
+/* ---------- render all / init ---------- */
+function renderAll(){
+  renderWall();
+  renderFinder();
+  renderPeople();
+  renderLog();
+  renderPlanner();
+  updateNowCard();
+}
+function endIntro(){
+  var intro=q('#intro'); if(!intro) return;
+  intro.classList.add('done');
+  state.seen=true; save();
+  setTimeout(function(){ if(intro.parentNode) intro.parentNode.removeChild(intro); },700);
+}
+var TOUR=[
+ {t:'Your wall of clocks',x:'Home is Bengaluru. Every other card is a place your people live — green means they are awake, grey means asleep.'},
+ {t:'The day wheel',x:'Pick two people and the wheel shows when you are both awake. The gold arc is your shared window — in your time and theirs.'},
+ {t:'Log the call',x:'Tap “Mark called” after you ring someone. Your streak grows day by day, and the week strip shows the habit forming.'}
+];
+var tourStep=0;
+function showTour(step){
+  tourStep=step||0;
+  var t=q('#tour');
+  q('#tourTitle').textContent=TOUR[tourStep].t;
+  q('#tourText').textContent=TOUR[tourStep].x;
+  q('#tourSteps').textContent='Step '+(tourStep+1)+' of '+TOUR.length;
+  q('#tourNext').textContent=tourStep===TOUR.length-1?'Done':'Next';
+  t.classList.add('show');
+  var anchors=[q('#wall'),q('#finder'),q('#log')];
+  var a=anchors[tourStep];
+  if(a){ safeScroll(a); }
+  var r=a?a.getBoundingClientRect():{top:80,left:20};
+  t.style.top=Math.min(window.innerHeight-190,Math.max(70,r.top+8))+'px';
+  t.style.left=Math.max(12,Math.min(window.innerWidth-320,r.left+12))+'px';
+}
+function hideTour(){ q('#tour').classList.remove('show'); }
+
+function init(){
+  renderGuides();
+  renderAll();
+  /* defaults for planner: today, 7 PM */
+  var today=new Date();
+  q('#planDate').value=localDateStr(today);
+  q('#planTime').value='19:00';
+  renderPlanner();
+  /* intro: full on first visit, quick on return */
+  var intro=q('#intro');
+  if(state.seen){ intro.style.display='none'; }
+  else{
+    setTimeout(endIntro,3600);
+    q('#skipIntro').addEventListener('click',endIntro);
+    intro.addEventListener('click',function(e){ if(e.target===intro) endIntro(); });
+    setTimeout(function(){ if(!state.seen) showTour(0); },4200);
+  }
+  /* events */
+  q('#pickA').addEventListener('change',finderChanged);
+  q('#pickB').addEventListener('change',finderChanged);
+  ['wakeA','sleepA','wakeB','sleepB'].forEach(function(id){ q('#'+id).addEventListener('change',wakeChanged); });
+  q('#addPlaceBtn').addEventListener('click',openPlaceSheet);
+  q('#addPersonBtn').addEventListener('click',openPersonSheet);
+  q('#sheetClose').addEventListener('click',closeSheet);
+  q('#sheet').addEventListener('click',function(e){ if(e.target===q('#sheet')) closeSheet(); });
+  q('#npSave').addEventListener('click',savePerson);
+  q('#apSave').addEventListener('click',savePlace);
+  q('#planDate').addEventListener('change',renderPlanner);
+  q('#planTime').addEventListener('change',renderPlanner);
+  q('#planNote').addEventListener('input',renderPlanner);
+  q('#copyPlanBtn').addEventListener('click',copyPlan);
+  q('#copyWeekBtn').addEventListener('click',copyWeek);
+  q('#nowCallBtn').addEventListener('click',function(){
+    var id=q('#nowCallBtn').dataset.person; if(id) markCalled(id);
+  });
+  q('#removeSamplesBtn').addEventListener('click',function(){
+    var before=state.people.length;
+    state.people=state.people.filter(function(p){ return !p.sample; });
+    save(); renderAll();
+    toast(before-state.people.length?('Removed the sample people.'):'No samples left to remove.');
+  });
+  q('#eraseBtn').addEventListener('click',function(){
+    if(!window.confirm('Erase everything — all people, places and call logs?')) return;
+    try{ localStorage.removeItem(LS_KEY); }catch(e){}
+    state=defaultState(); save(); renderAll();
+    toast('Fresh start — samples are back.');
+  });
+  q('#tourNext').addEventListener('click',function(){
+    if(tourStep>=TOUR.length-1) hideTour(); else showTour(tourStep+1);
+  });
+  q('#tourSkip').addEventListener('click',hideTour);
+  /* tickers: clocks every second, cards every 30s */
+  setInterval(updateClocks,1000);
+  setInterval(updateNowCard,1000);
+  setInterval(function(){ renderPeople(); renderFinder(); },30000);
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+else init();
