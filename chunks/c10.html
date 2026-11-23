@@ -1,0 +1,135 @@
+
+/* ---------- small DOM helpers ---------- */
+function q(s){ return document.querySelector(s); }
+function qa(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); }
+function el(tag,cls,html){ var n=document.createElement(tag); if(cls) n.className=cls; if(html!=null) n.innerHTML=html; return n; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function safeScroll(n){ try{ if(n&&n.scrollIntoView) n.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){} }
+var toastTimer=null;
+function toast(msg){ var t=q('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.classList.remove('show'); },2600); }
+function personById(id){ for(var i=0;i<state.people.length;i++){ if(state.people[i].id===id) return state.people[i]; } return null; }
+function homePerson(){ return {id:'home',name:'You (home)',place:'Bengaluru, India',tz:HOME_TZ,wake:420,sleep:1350}; }
+function finderPerson(id){ return id==='home'?homePerson():personById(id); }
+
+/* ---------- analog clock face ---------- */
+function analogSVG(tz,date){
+  var p=partsInZone(tz,date);
+  var h=((p.h%12)+p.mi/60)*30, m=p.mi*6, s=p.s*6;
+  return '<svg class="analog" viewBox="0 0 80 80" aria-hidden="true">'
+    +'<circle cx="40" cy="40" r="37" fill="#fffdf7" stroke="#d9c6a4" stroke-width="1.5"/>'
+    +'<line x1="40" y1="40" x2="40" y2="16" stroke="#2b1d12" stroke-width="2.4" stroke-linecap="round" transform="rotate('+h+' 40 40)"/>'
+    +'<line x1="40" y1="40" x2="40" y2="10" stroke="#c05b2e" stroke-width="1.6" stroke-linecap="round" transform="rotate('+m+' 40 40)"/>'
+    +'<line x1="40" y1="40" x2="40" y2="12" stroke="#b07d2b" stroke-width="0.9" stroke-linecap="round" transform="rotate('+s+' 40 40)"/>'
+    +'<circle cx="40" cy="40" r="2.6" fill="#2b1d12"/></svg>';
+}
+
+/* ---------- clock wall ---------- */
+function renderWall(){
+  var wall=q('#clockWall'); wall.innerHTML='';
+  var now=new Date();
+  state.places.forEach(function(tz){
+    var pl=placeById(tz);
+    var isHome=tz===HOME_TZ;
+    var card=el('div','clock-card'+(isHome?' home':'')); card.setAttribute('role','listitem'); card.dataset.tz=tz;
+    var top=el('div','top');
+    var title=el('div'); title.appendChild(el('h3',null,esc(pl.short)));
+    title.appendChild(el('div','city',esc(pl.label)+(isHome?' · Home':'')));
+    top.appendChild(title);
+    var svgWrap=el('div'); svgWrap.innerHTML=analogSVG(tz,now); top.appendChild(svgWrap.firstChild);
+    card.appendChild(top);
+    var dig=el('div','dig'); card.appendChild(dig);
+    var dateEl=el('div','date'); card.appendChild(dateEl);
+    var foot=el('div','foot');
+    var off=el('span','off'); foot.appendChild(off);
+    var pill=el('span','pill'); foot.appendChild(pill);
+    card.appendChild(foot);
+    if(!isHome){
+      var rm=el('button','rm','&times;'); rm.type='button'; rm.setAttribute('aria-label','Remove '+esc(pl.short)+' from wall');
+      rm.addEventListener('click',function(){ state.places=state.places.filter(function(x){return x!==tz;}); save(); renderAll(); toast(pl.short+' removed from your wall'); });
+      card.appendChild(rm);
+    }
+    wall.appendChild(card);
+  });
+  var add=el('button','add-clock','<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#b07d2b" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg><b>Add a place</b><span>London, Sydney, Toronto and 10 more time zones.</span>');
+  add.type='button'; add.addEventListener('click',openPlaceSheet);
+  wall.appendChild(add);
+  updateClocks();
+}
+function updateClocks(){
+  var now=new Date();
+  var homeOff=tzOffsetMin(HOME_TZ,now);
+  qa('.clock-card').forEach(function(card){
+    var tz=card.dataset.tz; if(!tz) return;
+    var p=partsInZone(tz,now);
+    var h12=p.h%12; if(h12===0) h12=12;
+    var dig=card.querySelector('.dig');
+    dig.innerHTML=h12+':'+String(p.mi).padStart(2,'0')+'<small>:'+String(p.s).padStart(2,'0')+' '+(p.h>=12?'PM':'AM')+'</small>';
+    card.querySelector('.date').textContent=dayLabel(tz,now);
+    var off=tzOffsetMin(tz,now)-homeOff;
+    var offEl=card.querySelector('.off');
+    offEl.textContent=tz===HOME_TZ?fmtOffset(homeOff)+' · IST':(off===0?'Same time as home':(off>0?'+':'')+Math.floor(Math.abs(off)/60)+(Math.abs(off)%60?'h '+Math.abs(off)%60+'m':'h')+(off>0?' ahead':' behind'));
+    var isDay=p.h>=6&&p.h<19;
+    var pill=card.querySelector('.pill');
+    pill.className='pill '+(isDay?'awake':'asleep');
+    pill.innerHTML='<span class="dot" style="background:'+(isDay?'#3f7a4e':'#8a7360')+'"></span>'+(isDay?'Daytime':'Night');
+    var svg=card.querySelector('.analog');
+    if(svg){ var tmp=el('div'); tmp.innerHTML=analogSVG(tz,now); svg.replaceWith(tmp.firstChild); }
+  });
+  var hp=partsInZone(HOME_TZ,now);
+  var h12=hp.h%12; if(h12===0) h12=12;
+  q('#mastClock').textContent=h12+':'+String(hp.mi).padStart(2,'0')+' '+(hp.h>=12?'PM':'AM');
+  q('#mastDate').textContent=dayLabel(HOME_TZ,now);
+}
+
+/* ---------- best person to call now ---------- */
+function bestToCallNow(now){
+  var best=null;
+  state.people.forEach(function(p){
+    if(!isAwakeAt(p.tz,p.wake,p.sleep,now)) return;
+    var mins=localMinutes(p.tz,now);
+    var score=Math.min(Math.abs(mins-p.wake),Math.abs(p.sleep-mins));
+    if(!best||score>best.score) best={p:p,score:score};
+  });
+  return best?best.p:null;
+}
+function updateNowCard(){
+  var now=new Date();
+  var best=bestToCallNow(now);
+  var awakeCount=state.people.filter(function(p){ return isAwakeAt(p.tz,p.wake,p.sleep,now); }).length;
+  q('#statPeople').textContent=state.people.length;
+  q('#statAwake').textContent=awakeCount+' of '+state.people.length;
+  q('#statStreak').textContent=callStreak()+' days';
+  var btn=q('#nowCallBtn');
+  if(best){
+    q('#nowAvatar').textContent=best.name.charAt(0).toUpperCase();
+    q('#nowAvatar').className='avatar '+AVATAR_COLORS[best.color||0];
+    q('#nowName').textContent=best.name+' — '+best.place;
+    var p=partsInZone(best.tz,now);
+    var h12=p.h%12; if(h12===0) h12=12;
+    q('#nowVerdict').textContent='It is '+h12+':'+String(p.mi).padStart(2,'0')+' '+(p.h>=12?'PM':'AM')+' there — a good time to ring. Their day runs '+fromMin(best.wake)+' to '+fromMin(best.sleep)+' local time.';
+    q('#nowCountdownLabel').textContent='until '+best.name+' heads to bed';
+    var bed=new Date(now.getTime());
+    var bedMin=best.sleep;
+    var bedLocal=zonedToUtc2(best.tz,partsInZone(best.tz,now).y,partsInZone(best.tz,now).mo,partsInZone(best.tz,now).d,Math.floor(bedMin/60),bedMin%60);
+    if(bedLocal<=now) bedLocal=new Date(bedLocal.getTime()+86400000);
+    var diff=Math.max(0,Math.floor((bedLocal-now)/1000));
+    var hh=Math.floor(diff/3600), mm=Math.floor(diff%3600/60), ss=diff%60;
+    q('#nowCountdown').textContent=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+    btn.disabled=false; btn.dataset.person=best.id;
+  }else{
+    q('#nowAvatar').textContent='—';
+    q('#nowName').textContent='Everyone is asleep';
+    q('#nowVerdict').textContent='All your people are in their night hours right now. The next window opens soon — check the finder below.';
+    q('#nowCountdownLabel').textContent='until the next good window opens';
+    var nxt=null;
+    state.people.forEach(function(p){
+      var t=nextWindowStart(p.tz,p.wake,p.sleep,now);
+      if(t&&(!nxt||t<nxt)) nxt=t;
+    });
+    if(nxt){
+      var diff=Math.max(0,Math.floor((nxt-now)/1000));
+      q('#nowCountdown').textContent=String(Math.floor(diff/3600)).padStart(2,'0')+':'+String(Math.floor(diff%3600/60)).padStart(2,'0')+':'+String(diff%60).padStart(2,'0');
+    }else q('#nowCountdown').textContent='--:--:--';
+    btn.disabled=true; btn.dataset.person='';
+  }
+}
